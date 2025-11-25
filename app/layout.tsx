@@ -1,0 +1,31 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { VaultProvider } from "@/contexts/vault-context";
+import { Header } from "@/components/header";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Vault Navigator",
+  description: "Modern UI for HashiCorp Vault",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <VaultProvider>
+          <div className="min-h-screen bg-background">
+            <Header />
+            {children}
+          </div>
+        </VaultProvider>
+      </body>
+    </html>
+  );
+}
