@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Save, Edit2, X, Trash2, Plus, Loader2, Copy, Check } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -29,11 +29,7 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
 
   const [formData, setFormData] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    loadSecret();
-  }, [path, client]);
-
-  const loadSecret = async () => {
+  const loadSecret = useCallback(async () => {
     if (!client) return;
 
     setLoading(true);
@@ -51,25 +47,29 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
         )
       );
       setJsonValue(JSON.stringify(data.data, null, 2));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading secret:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [client, path]);
+
+  useEffect(() => {
+    loadSecret();
+  }, [loadSecret]);
 
   const handleSave = async () => {
     if (!client) return;
 
     setSaving(true);
     try {
-      let dataToSave: Record<string, any>;
+      let dataToSave: Record<string, unknown>;
 
       if (editMode === "json") {
         try {
           dataToSave = JSON.parse(jsonValue);
           setJsonError("");
-        } catch (error) {
+        } catch {
           setJsonError("Invalid JSON");
           setSaving(false);
           return;
@@ -82,9 +82,9 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
       await loadSecret();
       setIsEditing(false);
       onSaved?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving secret:", error);
-      alert(`Error saving secret: ${error.message}`);
+      alert(`Error saving secret: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setSaving(false);
     }
@@ -97,9 +97,9 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
     try {
       await client.deleteSecret(path);
       onDeleted?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting secret:", error);
-      alert(`Error deleting secret: ${error.message}`);
+      alert(`Error deleting secret: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Folder,
   FileKey,
@@ -10,7 +10,6 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { useVault } from "@/contexts/vault-context";
-import { SecretListItem } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SecretBrowserProps {
@@ -36,13 +35,7 @@ export function SecretBrowser({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (client) {
-      loadRootSecrets();
-    }
-  }, [client, currentNamespace]);
-
-  const loadRootSecrets = async () => {
+  const loadRootSecrets = useCallback(async () => {
     if (!client) return;
 
     setLoading(true);
@@ -57,13 +50,19 @@ export function SecretBrowser({
           isExpanded: false,
         }))
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading secrets:", error);
-      setError(error.message || "Failed to load secrets");
+      setError(error instanceof Error ? error.message : "Failed to load secrets");
     } finally {
       setLoading(false);
     }
-  };
+  }, [client]);
+
+  useEffect(() => {
+    if (client) {
+      loadRootSecrets();
+    }
+  }, [client, currentNamespace, loadRootSecrets]);
 
   const loadChildren = async (node: TreeNode) => {
     if (!client) return;
@@ -224,7 +223,7 @@ export function SecretBrowser({
     <div className="space-y-1">
       {tree.length === 0 ? (
         <div className="p-4 text-center text-sm text-muted-foreground">
-          No secrets found. Make sure the "secret" KV engine is mounted.
+          No secrets found. Make sure the &quot;secret&quot; KV engine is mounted.
         </div>
       ) : (
         tree.map((node) => renderNode(node))

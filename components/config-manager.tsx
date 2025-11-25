@@ -118,10 +118,10 @@ export function ConfigManager() {
           message: result.error || "Connection failed",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setConnectionStatus({
         success: false,
-        message: error.message || "Connection test failed",
+        message: error instanceof Error ? error.message : "Connection test failed",
       });
     } finally {
       setTestingConnection(false);

@@ -14,7 +14,7 @@ export interface SavedConfig {
 
 export interface Secret {
   path: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   metadata?: {
     created_time: string;
     deletion_time: string;

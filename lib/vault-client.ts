@@ -51,15 +51,15 @@ export class VaultClient {
     }
   }
 
-  private handleError(error: any): VaultError {
+  private handleError(error: unknown): VaultError {
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<{ errors?: string[] }>;
       return {
         message: axiosError.response?.data?.errors?.[0] || axiosError.message,
         errors: axiosError.response?.data?.errors,
       };
     }
-    return { message: error.message || "Unknown error occurred" };
+    return { message: error instanceof Error ? error.message : "Unknown error occurred" };
   }
 
   async testConnection(): Promise<{ success: boolean; error?: string }> {
@@ -141,7 +141,7 @@ export class VaultClient {
 
   async writeSecret(
     path: string,
-    data: Record<string, any>
+    data: Record<string, unknown>
   ): Promise<void> {
     try {
       // Remove "secret/" prefix if present

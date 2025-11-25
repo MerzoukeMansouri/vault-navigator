@@ -6,38 +6,43 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyToVault(request, params.path);
+  const { path } = await params;
+  return proxyToVault(request, path);
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyToVault(request, params.path);
+  const { path } = await params;
+  return proxyToVault(request, path);
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyToVault(request, params.path);
+  const { path } = await params;
+  return proxyToVault(request, path);
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyToVault(request, params.path);
+  const { path } = await params;
+  return proxyToVault(request, path);
 }
 
 
 // OPTIONS for CORS preflight (though not needed with same-origin)
 export async function OPTIONS(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
+  await params; // Consume params even though we don't use it
   return new NextResponse(null, {
     status: 200,
     headers: {
@@ -116,10 +121,11 @@ async function proxyToVault(request: NextRequest, pathSegments: string[]) {
         "Content-Type": "application/json",
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Proxy error:", error);
+    const message = error instanceof Error ? error.message : "Proxy request failed";
     return NextResponse.json(
-      { error: error.message || "Proxy request failed" },
+      { error: message },
       { status: 502 }
     );
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { LogOut, Settings, Lock, Globe } from "lucide-react";
+import { LogOut, Lock, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { useVault } from "@/contexts/vault-context";
 import Link from "next/link";

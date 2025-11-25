@@ -52,13 +52,13 @@ export function SecretCreator({ onCreated }: SecretCreatorProps) {
 
     setSaving(true);
     try {
-      let dataToSave: Record<string, any>;
+      let dataToSave: Record<string, unknown>;
 
       if (mode === "json") {
         try {
           dataToSave = JSON.parse(jsonValue);
           setJsonError("");
-        } catch (error) {
+        } catch {
           setJsonError("Invalid JSON");
           setSaving(false);
           return;
@@ -74,9 +74,9 @@ export function SecretCreator({ onCreated }: SecretCreatorProps) {
       await client.writeSecret(fullPath, dataToSave);
       onCreated?.(fullPath);
       handleClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating secret:", error);
-      alert(`Error creating secret: ${error.message}`);
+      alert(`Error creating secret: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setSaving(false);
     }
