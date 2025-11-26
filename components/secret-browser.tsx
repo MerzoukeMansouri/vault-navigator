@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import {
   Folder,
   FileKey,
@@ -25,6 +25,77 @@ interface TreeNode {
   isExpanded?: boolean;
   isLoading?: boolean;
 }
+
+interface TreeNodeComponentProps {
+  node: TreeNode;
+  level: number;
+  selectedPath?: string;
+  onToggle: (node: TreeNode) => void;
+}
+
+// Memoized TreeNode component to prevent unnecessary re-renders
+const TreeNodeComponent = memo(({ node, level, selectedPath, onToggle }: TreeNodeComponentProps) => {
+  const isSelected = selectedPath === node.path;
+
+  return (
+    <div>
+      <motion.button
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent ${
+          isSelected ? "bg-accent font-medium" : ""
+        }`}
+        style={{ paddingLeft: `${level * 1.5 + 0.75}rem` }}
+        onClick={() => onToggle(node)}
+      >
+        {node.isFolder && (
+          <span className="flex-shrink-0">
+            {node.isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : node.isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </span>
+        )}
+        {node.isFolder ? (
+          node.isExpanded ? (
+            <FolderOpen className="h-4 w-4 text-primary" />
+          ) : (
+            <Folder className="h-4 w-4 text-primary" />
+          )
+        ) : (
+          <FileKey className="h-4 w-4 text-muted-foreground" />
+        )}
+        <span className="truncate">{node.name}</span>
+      </motion.button>
+
+      <AnimatePresence>
+        {node.isExpanded && node.children && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {node.children.map((child) => (
+              <TreeNodeComponent
+                key={child.path}
+                node={child}
+                level={level + 1}
+                selectedPath={selectedPath}
+                onToggle={onToggle}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+});
+
+TreeNodeComponent.displayName = "TreeNodeComponent";
 
 export function SecretBrowser({
   onSelectSecret,
@@ -64,7 +135,7 @@ export function SecretBrowser({
     }
   }, [client, currentNamespace, loadRootSecrets]);
 
-  const loadChildren = async (node: TreeNode) => {
+  const loadChildren = useCallback(async (node: TreeNode) => {
     if (!client) return;
 
     const updateNodeInTree = (
@@ -110,9 +181,9 @@ export function SecretBrowser({
         updateNodeInTree(prev, node.path, (n) => ({ ...n, isLoading: false }))
       );
     }
-  };
+  }, [client]);
 
-  const toggleNode = async (node: TreeNode) => {
+  const toggleNode = useCallback(async (node: TreeNode) => {
     if (node.isFolder) {
       if (!node.isExpanded && (!node.children || node.children.length === 0)) {
         await loadChildren(node);
@@ -137,60 +208,7 @@ export function SecretBrowser({
     } else {
       onSelectSecret(node.path);
     }
-  };
-
-  const renderNode = (node: TreeNode, level: number = 0) => {
-    const isSelected = selectedPath === node.path;
-
-    return (
-      <div key={node.path}>
-        <motion.button
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent ${
-            isSelected ? "bg-accent font-medium" : ""
-          }`}
-          style={{ paddingLeft: `${level * 1.5 + 0.75}rem` }}
-          onClick={() => toggleNode(node)}
-        >
-          {node.isFolder && (
-            <span className="flex-shrink-0">
-              {node.isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : node.isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </span>
-          )}
-          {node.isFolder ? (
-            node.isExpanded ? (
-              <FolderOpen className="h-4 w-4 text-primary" />
-            ) : (
-              <Folder className="h-4 w-4 text-primary" />
-            )
-          ) : (
-            <FileKey className="h-4 w-4 text-muted-foreground" />
-          )}
-          <span className="truncate">{node.name}</span>
-        </motion.button>
-
-        <AnimatePresence>
-          {node.isExpanded && node.children && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              {node.children.map((child) => renderNode(child, level + 1))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
+  }, [onSelectSecret, loadChildren]);
 
   if (loading) {
     return (
@@ -226,7 +244,15 @@ export function SecretBrowser({
           No secrets found. Make sure the &quot;secret&quot; KV engine is mounted.
         </div>
       ) : (
-        tree.map((node) => renderNode(node))
+        tree.map((node) => (
+          <TreeNodeComponent
+            key={node.path}
+            node={node}
+            level={0}
+            selectedPath={selectedPath}
+            onToggle={toggleNode}
+          />
+        ))
       )}
     </div>
   );

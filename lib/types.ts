@@ -9,7 +9,7 @@ export interface SavedConfig {
   name: string;
   url: string;
   token: string;
-  namespaces: string[];
+  namespace?: string;
 }
 
 export interface Secret {

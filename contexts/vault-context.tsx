@@ -35,12 +35,12 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     const vaultClient = new VaultClient({
       url: config.url,
       token: config.token,
-      namespace: config.namespaces[0] || undefined,
+      namespace: config.namespace,
     });
 
     setClient(vaultClient);
     setActiveConfig(config);
-    setCurrentNamespace(config.namespaces[0] || null);
+    setCurrentNamespace(config.namespace || null);
     setIsAuthenticated(true);
     storage.setActiveConfig(config.id);
   };

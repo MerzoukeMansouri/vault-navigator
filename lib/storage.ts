@@ -3,12 +3,48 @@ import { SavedConfig } from "./types";
 const STORAGE_KEY = "vault-configs";
 const ACTIVE_CONFIG_KEY = "active-vault-config";
 
+// Migration helper for old config format
+interface LegacyConfig {
+  id: string;
+  name: string;
+  url: string;
+  token: string;
+  namespaces?: string[];
+  namespace?: string;
+}
+
+function migrateConfig(config: LegacyConfig): SavedConfig {
+  // If config has old namespaces array format, convert to new single namespace format
+  if (config.namespaces && Array.isArray(config.namespaces)) {
+    return {
+      id: config.id,
+      name: config.name,
+      url: config.url,
+      token: config.token,
+      namespace: config.namespaces[0] || undefined,
+    };
+  }
+  // Already in new format
+  return config as SavedConfig;
+}
+
 export const storage = {
   getConfigs(): SavedConfig[] {
     if (typeof window === "undefined") return [];
     try {
       const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
+      if (!data) return [];
+
+      const rawConfigs: LegacyConfig[] = JSON.parse(data);
+      const migratedConfigs = rawConfigs.map(migrateConfig);
+
+      // Save migrated configs back to storage if migration occurred
+      const needsMigration = rawConfigs.some(c => c.namespaces && Array.isArray(c.namespaces));
+      if (needsMigration) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(migratedConfigs));
+      }
+
+      return migratedConfigs;
     } catch {
       return [];
     }

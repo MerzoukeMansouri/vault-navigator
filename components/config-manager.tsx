@@ -21,7 +21,7 @@ export function ConfigManager() {
     name: "",
     url: "",
     token: "",
-    namespaces: "",
+    namespace: "",
   });
 
   const [testingConnection, setTestingConnection] = useState(false);
@@ -46,10 +46,7 @@ export function ConfigManager() {
       name: formData.name,
       url: formData.url,
       token: formData.token,
-      namespaces: formData.namespaces
-        .split(",")
-        .map((ns) => ns.trim())
-        .filter(Boolean),
+      namespace: formData.namespace.trim() || undefined,
     };
 
     storage.saveConfig(config);
@@ -63,7 +60,7 @@ export function ConfigManager() {
       name: config.name,
       url: config.url,
       token: config.token,
-      namespaces: config.namespaces.join(", "),
+      namespace: config.namespace || "",
     });
     setEditingId(config.id);
     setIsAdding(true);
@@ -81,7 +78,7 @@ export function ConfigManager() {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", url: "", token: "", namespaces: "" });
+    setFormData({ name: "", url: "", token: "", namespace: "" });
     setIsAdding(false);
     setEditingId(null);
     setConnectionStatus(null);
@@ -190,16 +187,16 @@ export function ConfigManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="namespaces">
-                  Namespaces (comma-separated)
+                <Label htmlFor="namespace">
+                  Namespace
                 </Label>
                 <Input
-                  id="namespaces"
-                  value={formData.namespaces}
+                  id="namespace"
+                  value={formData.namespace}
                   onChange={(e) =>
-                    setFormData({ ...formData, namespaces: e.target.value })
+                    setFormData({ ...formData, namespace: e.target.value })
                   }
-                  placeholder="ns1, ns2, ns3"
+                  placeholder="my-namespace"
                 />
                 <p className="text-xs text-muted-foreground">
                   Leave empty for root namespace
@@ -303,11 +300,9 @@ export function ConfigManager() {
                   </span>
                 </div>
                 <div>
-                  <span className="font-semibold">Namespaces:</span>{" "}
+                  <span className="font-semibold">Namespace:</span>{" "}
                   <span className="text-muted-foreground">
-                    {config.namespaces.length > 0
-                      ? config.namespaces.join(", ")
-                      : "Root"}
+                    {config.namespace || "Root"}
                   </span>
                 </div>
               </div>

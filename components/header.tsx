@@ -1,23 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LogOut, Lock, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { useVault } from "@/contexts/vault-context";
+import { storage } from "@/lib/storage";
+import { SavedConfig } from "@/lib/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function Header() {
-  const { activeConfig, currentNamespace, switchNamespace, logout, isAuthenticated } =
+  const { activeConfig, currentNamespace, login, logout, isAuthenticated } =
     useVault();
   const pathname = usePathname();
-  const [showNamespaces, setShowNamespaces] = useState(false);
+  const [showConfigs, setShowConfigs] = useState(false);
+  const [configs, setConfigs] = useState<SavedConfig[]>([]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setConfigs(storage.getConfigs());
+    }
+  }, [isAuthenticated, activeConfig]);
 
   if (!isAuthenticated) return null;
 
-  const handleNamespaceSwitch = (namespace: string | null) => {
-    switchNamespace(namespace);
-    setShowNamespaces(false);
+  const handleConfigSwitch = (config: SavedConfig) => {
+    login(config);
+    setShowConfigs(false);
   };
 
   return (
@@ -60,39 +69,39 @@ export function Header() {
               <span className="font-medium">{activeConfig?.name}</span>
             </div>
 
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Namespace:</span>
+              <span className="font-medium">{currentNamespace || "Root"}</span>
+            </div>
+
             <div className="relative">
               <Button
                 variant="outline"
                 size="sm"
                 className="gap-2"
-                onClick={() => setShowNamespaces(!showNamespaces)}
+                onClick={() => setShowConfigs(!showConfigs)}
               >
                 <Globe className="h-4 w-4" />
-                {currentNamespace || "Root"}
+                Switch Config
               </Button>
 
-              {showNamespaces && (
-                <div className="absolute right-0 mt-2 w-48 rounded-md border bg-popover p-1 shadow-md">
+              {showConfigs && (
+                <div className="absolute right-0 mt-2 w-56 rounded-md border bg-popover p-1 shadow-md">
                   <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                    Switch Namespace
+                    Switch Configuration
                   </div>
-                  <button
-                    className={`w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent ${
-                      !currentNamespace ? "bg-accent" : ""
-                    }`}
-                    onClick={() => handleNamespaceSwitch(null)}
-                  >
-                    Root
-                  </button>
-                  {activeConfig?.namespaces.map((ns) => (
+                  {configs.map((config) => (
                     <button
-                      key={ns}
+                      key={config.id}
                       className={`w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent ${
-                        currentNamespace === ns ? "bg-accent" : ""
+                        activeConfig?.id === config.id ? "bg-accent" : ""
                       }`}
-                      onClick={() => handleNamespaceSwitch(ns)}
+                      onClick={() => handleConfigSwitch(config)}
                     >
-                      {ns}
+                      <div className="font-medium">{config.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {config.namespace || "Root"}
+                      </div>
                     </button>
                   ))}
                 </div>
