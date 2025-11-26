@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { VaultProvider } from "@/contexts/vault-context";
 import { Header } from "@/components/header";
+import { TokenDetectionProvider } from "@/components/token-detection-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +21,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <VaultProvider>
-          <div className="min-h-screen bg-background">
-            <Header />
-            {children}
-          </div>
+          <TokenDetectionProvider>
+            <div className="min-h-screen bg-background">
+              <Header />
+              {children}
+            </div>
+          </TokenDetectionProvider>
         </VaultProvider>
       </body>
     </html>

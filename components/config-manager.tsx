@@ -11,7 +11,11 @@ import { storage } from "@/lib/storage";
 import { useVault } from "@/contexts/vault-context";
 import { VaultClient } from "@/lib/vault-client";
 
-export function ConfigManager() {
+interface ConfigManagerProps {
+  prefilledToken?: string;
+}
+
+export function ConfigManager({ prefilledToken }: ConfigManagerProps) {
   const [configs, setConfigs] = useState<SavedConfig[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -33,6 +37,14 @@ export function ConfigManager() {
   useEffect(() => {
     loadConfigs();
   }, []);
+
+  // Handle prefilled token from URL
+  useEffect(() => {
+    if (prefilledToken) {
+      setFormData((prev) => ({ ...prev, token: prefilledToken }));
+      setIsAdding(true);
+    }
+  }, [prefilledToken]);
 
   const loadConfigs = () => {
     setConfigs(storage.getConfigs());
