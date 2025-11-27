@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/utils/logger";
+import { HTTP_STATUS, HTTP_METHODS } from "@/lib/constants";
 
 // Ensure this runs on Node.js runtime for external API calls
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(
+/**
+ * Unified handler for all HTTP methods
+ */
+async function handleRequest(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
@@ -12,30 +17,11 @@ export async function GET(
   return proxyToVault(request, path);
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params;
-  return proxyToVault(request, path);
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params;
-  return proxyToVault(request, path);
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params;
-  return proxyToVault(request, path);
-}
-
+// Export all HTTP methods using the unified handler
+export const GET = handleRequest;
+export const POST = handleRequest;
+export const PUT = handleRequest;
+export const DELETE = handleRequest;
 
 // OPTIONS for CORS preflight (though not needed with same-origin)
 export async function OPTIONS(
@@ -44,26 +30,30 @@ export async function OPTIONS(
 ) {
   await params; // Consume params even though we don't use it
   return new NextResponse(null, {
-    status: 200,
+    status: HTTP_STATUS.OK,
     headers: {
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Methods": `${HTTP_METHODS.GET}, ${HTTP_METHODS.POST}, ${HTTP_METHODS.PUT}, ${HTTP_METHODS.DELETE}, ${HTTP_METHODS.OPTIONS}`,
       "Access-Control-Allow-Headers": "*",
     },
   });
 }
 
 async function proxyToVault(request: NextRequest, pathSegments: string[]) {
-  // Debug: log all headers
-  console.log("API Route - All headers:", Object.fromEntries(request.headers.entries()));
-
+  // Extract Vault configuration from headers
   const vaultUrl = request.headers.get("x-vault-url");
   const vaultToken = request.headers.get("x-vault-token");
   const vaultNamespace = request.headers.get("x-vault-namespace");
   const methodOverride = request.headers.get("x-http-method-override");
 
-  console.log("API Route - Extracted:", { vaultUrl, vaultToken, vaultNamespace, methodOverride });
+  logger.debug("API Route - Proxy request", {
+    vaultUrl,
+    hasToken: !!vaultToken,
+    namespace: vaultNamespace,
+    methodOverride,
+  });
 
   if (!vaultUrl || !vaultToken) {
+    logger.warn("Missing Vault URL or token in request headers");
     return NextResponse.json(
       {
         error: "Missing Vault URL or token",
@@ -73,7 +63,7 @@ async function proxyToVault(request: NextRequest, pathSegments: string[]) {
           headerKeys: Array.from(request.headers.keys())
         }
       },
-      { status: 400 }
+      { status: HTTP_STATUS.BAD_REQUEST }
     );
   }
 
@@ -115,6 +105,11 @@ async function proxyToVault(request: NextRequest, pathSegments: string[]) {
 
     const data = await response.text();
 
+    logger.debug("Vault response received", {
+      status: response.status,
+      path: pathSegments.join("/"),
+    });
+
     return new NextResponse(data, {
       status: response.status,
       headers: {
@@ -122,11 +117,11 @@ async function proxyToVault(request: NextRequest, pathSegments: string[]) {
       },
     });
   } catch (error: unknown) {
-    console.error("Proxy error:", error);
+    logger.error("Proxy error", error);
     const message = error instanceof Error ? error.message : "Proxy request failed";
     return NextResponse.json(
       { error: message },
-      { status: 502 }
+      { status: HTTP_STATUS.BAD_GATEWAY }
     );
   }
 }

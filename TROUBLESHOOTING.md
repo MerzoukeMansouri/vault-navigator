@@ -187,6 +187,56 @@ vault token capabilities secret/metadata/myapp/config
 - Consider organizing secrets in shallower structures
 - Use more specific search terms
 
+## Token Detection Issues
+
+### Issue: Token not being detected from clipboard
+
+**Common Causes:**
+
+1. **Clipboard Permission Denied**
+   - Browser requires user interaction before accessing clipboard
+   - Some browsers have stricter clipboard policies
+
+   **Solution:**
+   - The token detection works best after you interact with the page (click, focus)
+   - Make sure the browser window is focused when you copy the token
+   - Check browser console for clipboard permission errors
+
+2. **Token Format Not Recognized**
+   - Only tokens starting with `hvs.` are detected
+   - Token must be copied as plain text
+
+   **Solution:**
+   - Ensure your token starts with `hvs.`
+   - Copy the complete token without extra spaces or newlines
+   - Don't copy from formatted text or tables
+
+3. **Browser Not Supported**
+   - Clipboard API not available in all browsers
+
+   **Solution:**
+   - Use modern browsers: Chrome, Firefox, Edge, Safari (latest versions)
+   - Enable clipboard permissions in browser settings
+   - If detection doesn't work, manually paste the token in the configuration form
+
+4. **Window Not Focused**
+   - Detection only runs when the Vault Navigator window is focused
+
+   **Solution:**
+   - Click on the Vault Navigator browser tab after copying the token
+   - The detection checks periodically when the window is focused
+
+### Issue: Token dialog appears but doesn't update
+
+**Common Causes:**
+- Network issues during config update
+- Invalid token format
+
+**Solution:**
+- Check browser console for errors
+- Verify the token is valid and not expired
+- Try manually updating the configuration instead
+
 ## Browser Console Debugging
 
 To see detailed logs:
@@ -260,6 +310,11 @@ These logs show the exact API calls being made and can help identify issues.
 4. **Use Descriptive Configuration Names**
    - Name configs by environment: "Production Vault", "Dev Vault"
    - Include region if applicable: "AWS US-East Production"
+
+5. **Leverage Automatic Token Detection**
+   - Copy new tokens and let Vault Navigator detect them
+   - Keep the browser tab focused for best detection
+   - Dismiss the dialog if you don't want to update
 
 ## Getting Help
 

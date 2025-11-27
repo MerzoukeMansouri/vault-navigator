@@ -8,6 +8,8 @@ A complete, production-ready Next.js application for managing HashiCorp Vault se
 
 ### 🔐 Authentication & Security
 - Token-based authentication
+- Automatic token detection from clipboard
+- Smart token update dialog for seamless rotation
 - Secure token storage in browser localStorage
 - Multi-configuration support (manage multiple Vault instances)
 - Namespace awareness and easy switching
@@ -75,8 +77,13 @@ vault-navigator/
 │   ├── secret-editor.tsx        # Secret viewer/editor
 │   ├── secret-search.tsx        # Search functionality
 │   ├── secret-creator.tsx       # Create new secrets
+│   ├── token-detection-provider.tsx  # Clipboard token detection
+│   ├── token-update-dialog.tsx  # Token update dialog
 │   ├── loading-state.tsx        # Loading component
 │   └── empty-state.tsx          # Empty state component
+│
+├── hooks/                        # Custom React hooks
+│   └── use-token-detection.tsx  # Token detection logic
 │
 ├── contexts/                     # React contexts
 │   └── vault-context.tsx        # Global Vault state
@@ -139,6 +146,27 @@ Advanced search:
 - Dropdown results with selection
 - Clear functionality
 
+### TokenDetectionProvider (`components/token-detection-provider.tsx`)
+Automatic token detection:
+- Monitors clipboard for Vault tokens (hvs.*)
+- Only active when window is focused
+- Privacy-conscious clipboard access
+- Triggers token update dialog
+
+### TokenUpdateDialog (`components/token-update-dialog.tsx`)
+Token management dialog:
+- Update existing configurations with new token
+- Create new configuration from detected token
+- Shows active configuration indicator
+- Beautiful animated modal with Framer Motion
+
+### useTokenDetection (`hooks/use-token-detection.tsx`)
+Token detection hook:
+- Clipboard monitoring logic
+- Periodic checking when focused
+- Token validation and deduplication
+- Dismissible token notifications
+
 ## Design System
 
 ### Color Palette
@@ -159,6 +187,7 @@ Advanced search:
 
 ### 1. Best-in-Class UX
 - Instant feedback on all actions
+- Automatic token detection for effortless rotation
 - Smooth animations without lag
 - Intuitive navigation
 - Helpful empty states
@@ -201,7 +230,7 @@ See QUICKSTART.md for detailed instructions.
 - Dark mode toggle
 - Audit log viewer
 - Policy management
-- Token renewal/rotation
+- Token renewal with TTL display
 - Favorites/bookmarks
 - Recent secrets list
 - Keyboard shortcuts

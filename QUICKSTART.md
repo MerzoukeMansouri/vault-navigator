@@ -36,6 +36,15 @@ pnpm dev
 
 5. You're ready to browse and manage secrets!
 
+### Quick Setup with Token Detection
+
+Alternatively, if you have a Vault token in your clipboard:
+
+1. Copy your Vault token (starts with `hvs.`)
+2. Open Vault Navigator - it will automatically detect the token
+3. Choose to update an existing configuration or create a new one
+4. Fill in the remaining details and you're done!
+
 ## Key Features to Try
 
 ### 1. Browse Secrets
@@ -70,6 +79,12 @@ pnpm dev
 - Add multiple Vault connections
 - Switch between them with one click
 
+### 7. Token Rotation
+- When you get a new token, simply copy it to your clipboard
+- Vault Navigator will automatically detect it
+- Choose which configuration to update
+- Your connection is refreshed instantly
+
 ## Troubleshooting
 
 ### Cannot connect to Vault
@@ -90,10 +105,11 @@ pnpm dev
 ## Security Best Practices
 
 1. **Use short-lived tokens**: Configure Vault to issue tokens with limited TTL
-2. **Rotate tokens regularly**: Update your token in the configuration when it expires
+2. **Rotate tokens easily**: Copy your new token - Vault Navigator detects it automatically
 3. **Limit permissions**: Use tokens with minimal required permissions
 4. **Don't commit tokens**: Never commit `.env` files or configurations with tokens
 5. **Use HTTPS**: Always connect to Vault over HTTPS in production
+6. **Clipboard security**: The token detection feature monitors clipboard only when the window is focused
 
 ## Next Steps
 

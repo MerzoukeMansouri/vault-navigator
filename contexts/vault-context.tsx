@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { VaultClient } from "@/lib/vault-client";
 import { SavedConfig } from "@/lib/types";
 import { storage } from "@/lib/storage";
@@ -24,14 +24,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   const [currentNamespace, setCurrentNamespace] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    const savedConfig = storage.getActiveConfig();
-    if (savedConfig) {
-      login(savedConfig);
-    }
-  }, []);
-
-  const login = (config: SavedConfig) => {
+  const login = useCallback((config: SavedConfig) => {
     const vaultClient = new VaultClient({
       url: config.url,
       token: config.token,
@@ -43,29 +36,36 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     setCurrentNamespace(config.namespace || null);
     setIsAuthenticated(true);
     storage.setActiveConfig(config.id);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setClient(null);
     setActiveConfig(null);
     setCurrentNamespace(null);
     setIsAuthenticated(false);
     storage.setActiveConfig(null);
-  };
+  }, []);
 
-  const switchNamespace = (namespace: string | null) => {
+  const switchNamespace = useCallback((namespace: string | null) => {
     if (client) {
       client.updateNamespace(namespace || undefined);
       setCurrentNamespace(namespace);
     }
-  };
+  }, [client]);
 
-  const refreshConfig = () => {
+  const refreshConfig = useCallback(() => {
     const savedConfig = storage.getActiveConfig();
     if (savedConfig) {
       setActiveConfig(savedConfig);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const savedConfig = storage.getActiveConfig();
+    if (savedConfig) {
+      login(savedConfig);
+    }
+  }, [login]);
 
   return (
     <VaultContext.Provider

@@ -1,21 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-const VAULT_TOKEN_PREFIX = "hvs.";
-const CHECK_INTERVAL = 1000; // Check every second when window is focused
+import { useEffect, useRef, useState, useCallback } from "react";
+import { VAULT_CONFIG, TOKEN_DETECTION } from "@/lib/constants";
+import { logger } from "@/lib/utils/logger";
 
 export interface DetectedToken {
   token: string;
   detectedAt: number;
 }
 
-export function useTokenDetection(enabled: boolean = true) {
+export function useTokenDetection(enabled: boolean = TOKEN_DETECTION.ENABLED_BY_DEFAULT) {
   const [detectedToken, setDetectedToken] = useState<DetectedToken | null>(null);
   const lastCheckedTokenRef = useRef<string>("");
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const checkClipboard = async () => {
+  const checkClipboard = useCallback(async () => {
     if (!enabled) return;
 
     try {
@@ -30,7 +29,7 @@ export function useTokenDetection(enabled: boolean = true) {
       // Check if it's a Vault token and we haven't seen it before
       if (
         text &&
-        text.trim().startsWith(VAULT_TOKEN_PREFIX) &&
+        text.trim().startsWith(VAULT_CONFIG.TOKEN_PREFIX) &&
         text.trim() !== lastCheckedTokenRef.current
       ) {
         const token = text.trim();
@@ -40,13 +39,15 @@ export function useTokenDetection(enabled: boolean = true) {
           token,
           detectedAt: Date.now(),
         });
+
+        logger.debug("Vault token detected from clipboard");
       }
     } catch (error) {
       // Clipboard access denied or not available - silently fail
       // This is expected in many browsers without user interaction
-      console.debug("Clipboard access not available:", error);
+      logger.debug("Clipboard access not available", error);
     }
-  };
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -67,7 +68,7 @@ export function useTokenDetection(enabled: boolean = true) {
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
       }
-      checkIntervalRef.current = setInterval(checkClipboard, CHECK_INTERVAL);
+      checkIntervalRef.current = setInterval(checkClipboard, TOKEN_DETECTION.CHECK_INTERVAL);
     };
 
     const stopPeriodicCheck = () => {
@@ -95,7 +96,7 @@ export function useTokenDetection(enabled: boolean = true) {
       window.removeEventListener("blur", stopPeriodicCheck);
       stopPeriodicCheck();
     };
-  }, [enabled]);
+  }, [enabled, checkClipboard]);
 
   const dismissToken = () => {
     setDetectedToken(null);

@@ -1,30 +1,34 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 import { VaultConfig, Secret, SecretListItem, VaultError } from "./types";
-
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-}
+import { VaultCache } from "./services/vault-cache";
+import { VaultPathUtils } from "./utils/vault-path-utils";
+import { logger } from "./utils/logger";
+import { VAULT_CONFIG } from "./constants";
 
 export class VaultClient {
   private client: AxiosInstance;
   private config: VaultConfig;
-  private listCache: Map<string, CacheEntry<SecretListItem[]>>;
-  private secretCache: Map<string, CacheEntry<Secret>>;
-  private readonly LIST_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-  private readonly SECRET_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+  private listCache: VaultCache<SecretListItem[]>;
+  private secretCache: VaultCache<Secret>;
   private debugMode: boolean = false;
 
   constructor(config: VaultConfig, debugMode: boolean = false) {
     this.config = config;
     this.debugMode = debugMode;
-    this.listCache = new Map();
-    this.secretCache = new Map();
+
+    // Initialize caches with configured TTLs
+    this.listCache = new VaultCache<SecretListItem[]>({
+      defaultTTL: VAULT_CONFIG.CACHE_TTL.LIST,
+      enableLogging: debugMode,
+    });
+    this.secretCache = new VaultCache<Secret>({
+      defaultTTL: VAULT_CONFIG.CACHE_TTL.SECRET,
+      enableLogging: debugMode,
+    });
 
     // Use Next.js API proxy to avoid CORS issues
     this.client = axios.create({
-      baseURL: "/api/vault",
+      baseURL: VAULT_CONFIG.API_BASE_PATH,
     });
 
     // Set default headers for all requests
@@ -35,7 +39,7 @@ export class VaultClient {
     }
 
     if (this.debugMode) {
-      console.log("VaultClient created with:", {
+      logger.debug("VaultClient created", {
         url: config.url,
         hasToken: !!config.token,
         namespace: config.namespace,
@@ -44,7 +48,7 @@ export class VaultClient {
       // Add request interceptor for debugging
       this.client.interceptors.request.use(
         (config) => {
-          console.log("Axios request:", {
+          logger.debug("Axios request", {
             url: config.url,
             method: config.method,
             headers: config.headers,
@@ -74,30 +78,6 @@ export class VaultClient {
     this.secretCache.clear();
   }
 
-  private getCachedData<T>(cache: Map<string, CacheEntry<T>>, key: string): T | null {
-    const entry = cache.get(key);
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-      cache.delete(key);
-      return null;
-    }
-
-    if (this.debugMode) {
-      console.log(`Cache hit for: ${key}`);
-    }
-    return entry.data;
-  }
-
-  private setCachedData<T>(cache: Map<string, CacheEntry<T>>, key: string, data: T, ttl: number) {
-    cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
-  }
-
   private handleError(error: unknown): VaultError {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{ errors?: string[] }>;
@@ -121,29 +101,17 @@ export class VaultClient {
 
   async listSecrets(path: string = ""): Promise<SecretListItem[]> {
     // Check cache first
-    const cacheKey = `list:${path}:${this.config.namespace || 'root'}`;
-    const cached = this.getCachedData(this.listCache, cacheKey);
+    const cacheKey = VaultPathUtils.buildCacheKey("list", path, this.config.namespace);
+    const cached = this.listCache.get(cacheKey);
     if (cached) {
       return cached;
     }
 
     try {
-      // If no path or just "secret", list from root of secret mount
-      let url: string;
-
-      if (!path || path === "secret") {
-        url = `/v1/secret/metadata`;
-      } else if (path.startsWith("secret/")) {
-        // Path includes mount, use it directly
-        const secretPath = path.substring(7); // Remove "secret/" prefix
-        url = `/v1/secret/metadata/${secretPath}`;
-      } else {
-        // Assume it's a path within secret mount
-        url = `/v1/secret/metadata/${path}`;
-      }
+      const url = VaultPathUtils.buildListUrl(path);
 
       if (this.debugMode) {
-        console.log("Listing secrets from:", url);
+        logger.debug("Listing secrets from", url);
       }
 
       // Use POST with X-HTTP-Method-Override since browsers don't support LIST method
@@ -156,22 +124,22 @@ export class VaultClient {
       });
 
       const keys = response.data?.data?.keys || [];
-      const basePath = path && path !== "secret" ? path : "";
+      const basePath = path && path !== VAULT_CONFIG.DEFAULT_MOUNT ? path : "";
 
       const results = keys.map((key: string) => ({
         name: key.replace(/\/$/, ""),
-        path: basePath ? `${basePath}/${key}`.replace(/^\//, "") : key,
+        path: basePath ? VaultPathUtils.joinPaths(basePath, key) : key,
         isFolder: key.endsWith("/"),
       }));
 
       // Cache the results
-      this.setCachedData(this.listCache, cacheKey, results, this.LIST_CACHE_TTL);
+      this.listCache.set(cacheKey, results);
 
       return results;
     } catch (error) {
       const vaultError = this.handleError(error);
       if (this.debugMode) {
-        console.error("Error listing secrets:", vaultError);
+        logger.error("Error listing secrets", vaultError);
       }
       if (vaultError.message.includes("404")) {
         return [];
@@ -182,21 +150,17 @@ export class VaultClient {
 
   async readSecret(path: string): Promise<Secret> {
     // Check cache first
-    const cacheKey = `secret:${path}:${this.config.namespace || 'root'}`;
-    const cached = this.getCachedData(this.secretCache, cacheKey);
+    const cacheKey = VaultPathUtils.buildCacheKey("secret", path, this.config.namespace);
+    const cached = this.secretCache.get(cacheKey);
     if (cached) {
       return cached;
     }
 
     try {
-      // Remove "secret/" prefix if present for the API call
-      const cleanPath = path.startsWith("secret/")
-        ? path.substring(7)
-        : path;
+      const url = VaultPathUtils.buildSecretUrl(path, "data");
 
-      const url = `/v1/secret/data/${cleanPath}`;
       if (this.debugMode) {
-        console.log("Reading secret from:", url);
+        logger.debug("Reading secret from", url);
       }
 
       const response = await this.client.get(url);
@@ -208,7 +172,7 @@ export class VaultClient {
       };
 
       // Cache the result
-      this.setCachedData(this.secretCache, cacheKey, result, this.SECRET_CACHE_TTL);
+      this.secretCache.set(cacheKey, result);
 
       return result;
     } catch (error) {
@@ -221,26 +185,22 @@ export class VaultClient {
     data: Record<string, unknown>
   ): Promise<void> {
     try {
-      // Remove "secret/" prefix if present
-      const cleanPath = path.startsWith("secret/")
-        ? path.substring(7)
-        : path;
+      const url = VaultPathUtils.buildSecretUrl(path, "data");
 
-      const url = `/v1/secret/data/${cleanPath}`;
       if (this.debugMode) {
-        console.log("Writing secret to:", url);
+        logger.debug("Writing secret to", url);
       }
 
       await this.client.post(url, { data });
 
       // Invalidate cache for this secret
-      const cacheKey = `secret:${path}:${this.config.namespace || 'root'}`;
-      this.secretCache.delete(cacheKey);
+      const cacheKey = VaultPathUtils.buildCacheKey("secret", path, this.config.namespace);
+      this.secretCache.invalidate(cacheKey);
 
       // Invalidate parent folder list cache
-      const parentPath = path.split('/').slice(0, -1).join('/');
-      const listCacheKey = `list:${parentPath}:${this.config.namespace || 'root'}`;
-      this.listCache.delete(listCacheKey);
+      const parentPath = VaultPathUtils.extractParentPath(path);
+      const listCacheKey = VaultPathUtils.buildCacheKey("list", parentPath, this.config.namespace);
+      this.listCache.invalidate(listCacheKey);
     } catch (error) {
       throw this.handleError(error);
     }
@@ -248,26 +208,22 @@ export class VaultClient {
 
   async deleteSecret(path: string): Promise<void> {
     try {
-      // Remove "secret/" prefix if present
-      const cleanPath = path.startsWith("secret/")
-        ? path.substring(7)
-        : path;
+      const url = VaultPathUtils.buildSecretUrl(path, "metadata");
 
-      const url = `/v1/secret/metadata/${cleanPath}`;
       if (this.debugMode) {
-        console.log("Deleting secret from:", url);
+        logger.debug("Deleting secret from", url);
       }
 
       await this.client.delete(url);
 
       // Invalidate cache for this secret
-      const cacheKey = `secret:${path}:${this.config.namespace || 'root'}`;
-      this.secretCache.delete(cacheKey);
+      const cacheKey = VaultPathUtils.buildCacheKey("secret", path, this.config.namespace);
+      this.secretCache.invalidate(cacheKey);
 
       // Invalidate parent folder list cache
-      const parentPath = path.split('/').slice(0, -1).join('/');
-      const listCacheKey = `list:${parentPath}:${this.config.namespace || 'root'}`;
-      this.listCache.delete(listCacheKey);
+      const parentPath = VaultPathUtils.extractParentPath(path);
+      const listCacheKey = VaultPathUtils.buildCacheKey("list", parentPath, this.config.namespace);
+      this.listCache.invalidate(listCacheKey);
     } catch (error) {
       throw this.handleError(error);
     }
@@ -275,7 +231,7 @@ export class VaultClient {
 
   async searchSecrets(
     query: string,
-    basePath: string = "secret",
+    basePath: string = VAULT_CONFIG.DEFAULT_MOUNT,
     signal?: AbortSignal,
     maxResults: number = 100,
     maxDepth: number = 10
@@ -351,7 +307,7 @@ export class VaultClient {
               }
             } catch (error) {
               if (this.debugMode) {
-                console.error(`Error reading secret ${fullPath}:`, error);
+                logger.error(`Error reading secret ${fullPath}`, error);
               }
             }
           }
@@ -361,7 +317,7 @@ export class VaultClient {
         await Promise.all(promises);
       } catch (error) {
         if (this.debugMode) {
-          console.error(`Error searching path ${currentPath}:`, error);
+          logger.error(`Error searching path ${currentPath}`, error);
         }
       }
     };
@@ -374,20 +330,10 @@ export class VaultClient {
     try {
       const response = await this.client.get("/v1/sys/mounts");
       return Object.keys(response.data?.data || response.data || {})
-        .filter((mount) => mount.includes("secret") || mount.includes("kv"))
+        .filter((mount) => mount.includes(VAULT_CONFIG.DEFAULT_MOUNT) || mount.includes("kv"))
         .map((mount) => mount.replace(/\/$/, ""));
     } catch (error) {
       throw this.handleError(error);
     }
-  }
-
-  private extractMountPath(path: string): string {
-    const parts = path.split("/");
-    return parts[0] || "secret";
-  }
-
-  private extractSecretPath(path: string): string {
-    const parts = path.split("/");
-    return parts.slice(1).join("/");
   }
 }

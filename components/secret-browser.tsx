@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useVault } from "@/contexts/vault-context";
 import { motion, AnimatePresence } from "framer-motion";
+import { VaultPathUtils } from "@/lib/utils/vault-path-utils";
 
 interface SecretBrowserProps {
   onSelectSecret: (path: string) => void;
@@ -162,7 +163,7 @@ export function SecretBrowser({
       const secrets = await client.listSecrets(node.path);
       const children = secrets.map((s) => ({
         name: s.name,
-        path: `${node.path}/${s.name}`.replace("//", "/"),
+        path: VaultPathUtils.joinPaths(node.path, s.name),
         isFolder: s.isFolder,
         isExpanded: false,
       }));
