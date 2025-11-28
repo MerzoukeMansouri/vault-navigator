@@ -14,6 +14,10 @@ import Link from "next/link";
 import { MaintenancePage } from "@/components/maintenance-page";
 
 export default function Home() {
+  // React hooks must be called before any conditional returns
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const { isAuthenticated } = useVault();
+
   // Check if maintenance mode is enabled
   const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true' || true;
 
@@ -21,9 +25,6 @@ export default function Home() {
   if (isMaintenanceMode) {
     return <MaintenancePage />;
   }
-
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const { isAuthenticated } = useVault();
 
   const handleSecretDeleted = () => {
     setSelectedPath(null);
