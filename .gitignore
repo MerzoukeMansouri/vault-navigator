@@ -5,6 +5,9 @@
 
 # testing
 /coverage
+.stryker-tmp/
+mutation-report.html
+mutation-report.json
 
 # next.js
 /.next/
