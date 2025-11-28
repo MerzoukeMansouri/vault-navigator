@@ -11,8 +11,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { MaintenancePage } from "@/components/maintenance-page";
 
 export default function Home() {
+  // Check if maintenance mode is enabled
+  const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true' || true;
+
+  // If maintenance mode is enabled, show the maintenance page
+  if (isMaintenanceMode) {
+    return <MaintenancePage />;
+  }
+
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const { isAuthenticated } = useVault();
 
