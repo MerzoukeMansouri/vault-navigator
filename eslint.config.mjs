@@ -20,9 +20,6 @@ const eslintConfig = [
       // Cognitive Complexity - measures how difficult code is to understand
       'sonarjs/cognitive-complexity': ['warn', 10],
 
-      // Function/Method complexity
-      'sonarjs/max-function-complexity': ['warn', 10],
-
       // Code duplication detection
       'sonarjs/no-duplicate-string': ['warn', { threshold: 3 }],
       'sonarjs/no-identical-functions': 'warn',
@@ -41,6 +38,7 @@ const eslintConfig = [
       'sonarjs/no-inverted-boolean-check': 'warn',
 
       // File/Function size (using standard ESLint rules)
+      'complexity': ['warn', 10],
       'max-lines': ['warn', { max: 250, skipBlankLines: true, skipComments: true }],
       'max-lines-per-function': ['warn', { max: 50, skipBlankLines: true, skipComments: true }],
     },
