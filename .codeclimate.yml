@@ -1,0 +1,104 @@
+version: "2"
+
+# Configure code quality checks
+checks:
+  # Cognitive Complexity - measures how difficult code is to understand
+  method-complexity:
+    enabled: true
+    config:
+      threshold: 10  # Warn if function complexity > 10
+
+  # File size - total lines of code per file
+  file-lines:
+    enabled: true
+    config:
+      threshold: 250  # Warn if file > 250 lines
+
+  # Function size - lines of code per function
+  method-lines:
+    enabled: true
+    config:
+      threshold: 50  # Warn if function > 50 lines
+
+  # Additional useful checks
+  identical-code:
+    enabled: true
+    config:
+      threshold: 50  # Warn if 50+ lines are duplicated
+
+  similar-code:
+    enabled: true
+    config:
+      threshold: 100  # Warn if 100+ lines are similar
+
+  return-statements:
+    enabled: true
+    config:
+      threshold: 4  # Warn if function has > 4 return statements
+
+# Plugins to analyze TypeScript/JavaScript
+plugins:
+  eslint:
+    enabled: true
+    channel: "eslint-9"
+    config:
+      extensions:
+        - .js
+        - .jsx
+        - .ts
+        - .tsx
+
+  duplication:
+    enabled: true
+    config:
+      languages:
+        - javascript
+        - typescript
+
+# Exclude patterns - files/directories to ignore
+exclude_patterns:
+  # Dependencies
+  - "node_modules/"
+  - "pnpm-lock.yaml"
+  - "package-lock.json"
+
+  # Build output
+  - ".next/"
+  - "dist/"
+  - "build/"
+  - "out/"
+
+  # Test files (we want to focus on production code)
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/__tests__/**"
+  - "vitest.config.ts"
+  - "vitest.setup.ts"
+
+  # Configuration files
+  - "*.config.js"
+  - "*.config.ts"
+  - "tailwind.config.ts"
+  - "postcss.config.mjs"
+  - "next.config.ts"
+  - "eslint.config.mjs"
+  - "stryker.conf.json"
+
+  # TypeScript declarations
+  - "**/*.d.ts"
+
+  # Mutation testing output
+  - ".stryker-tmp/"
+  - "mutation-report.*"
+
+  # Coverage reports
+  - "coverage/"
+
+  # Documentation
+  - "docs/"
+  - "*.md"
+
+  # Public assets
+  - "public/"

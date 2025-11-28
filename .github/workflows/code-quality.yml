@@ -1,0 +1,94 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  code-quality:
+    name: Analyze Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint with complexity analysis
+        run: |
+          pnpm exec eslint . \
+            --ext .ts,.tsx,.js,.jsx \
+            --format json \
+            --output-file eslint-report.json || true
+
+      - name: Generate complexity report
+        run: |
+          echo "# Code Quality Report" > quality-report.md
+          echo "" >> quality-report.md
+          echo "## Metrics Configuration" >> quality-report.md
+          echo "- **Cognitive Complexity Threshold**: 10" >> quality-report.md
+          echo "- **File Size Threshold**: 250 lines" >> quality-report.md
+          echo "- **Function Size Threshold**: 50 lines" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "## Analysis Results" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "Review the Code Climate configuration in \`.codeclimate.yml\` for detailed thresholds." >> quality-report.md
+          echo "" >> quality-report.md
+          echo "### Files Analyzed" >> quality-report.md
+          echo "\`\`\`" >> quality-report.md
+          find . -type f \( -name "*.ts" -o -name "*.tsx" \) \
+            ! -path "*/node_modules/*" \
+            ! -path "*/.next/*" \
+            ! -path "*/dist/*" \
+            ! -path "*/__tests__/*" \
+            ! -name "*.test.ts" \
+            ! -name "*.test.tsx" \
+            ! -name "*.config.ts" \
+            ! -name "*.d.ts" \
+            | wc -l >> quality-report.md
+          echo "\`\`\`" >> quality-report.md
+          echo "TypeScript/TSX files (excluding tests and configs)" >> quality-report.md
+
+      - name: Upload quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: quality-report.md
+          retention-days: 30
+
+      - name: Upload ESLint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: eslint-report.json
+          retention-days: 30
+
+      - name: Comment PR with report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('quality-report.md', 'utf8');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
