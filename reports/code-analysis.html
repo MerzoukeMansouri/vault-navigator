@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Quality Analysis - Vault Navigator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .content {
+      padding: 40px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+    .stat-card {
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 12px;
+      border-left: 4px solid #3498db;
+      transition: transform 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .stat-label {
+      color: #7f8c8d;
+      font-size: 0.9em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-value {
+      color: #2c3e50;
+      font-size: 2.5em;
+      font-weight: 700;
+      margin: 8px 0;
+    }
+    .stat-card.error { border-left-color: #e74c3c; }
+    .stat-card.warning { border-left-color: #f39c12; }
+    .stat-card.success { border-left-color: #27ae60; }
+    .error .stat-value { color: #e74c3c; }
+    .warning .stat-value { color: #f39c12; }
+    .success .stat-value { color: #27ae60; }
+    h2 {
+      color: #2c3e50;
+      font-size: 1.8em;
+      margin: 40px 0 20px 0;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #ecf0f1;
+    }
+    .issue-item {
+      background: #fff;
+      border: 1px solid #ecf0f1;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      transition: all 0.2s;
+    }
+    .issue-item:hover {
+      border-color: #3498db;
+      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+    }
+    .issue-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .severity-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .severity-error {
+      background: #fee;
+      color: #e74c3c;
+    }
+    .severity-warning {
+      background: #fef5e7;
+      color: #f39c12;
+    }
+    .rule-name {
+      font-family: 'Courier New', monospace;
+      color: #3498db;
+      font-weight: 600;
+    }
+    .file-path {
+      color: #7f8c8d;
+      font-size: 0.9em;
+      font-family: 'Courier New', monospace;
+    }
+    .issue-message {
+      color: #555;
+      margin-top: 8px;
+      padding-left: 20px;
+      border-left: 3px solid #ecf0f1;
+    }
+    .rule-list {
+      list-style: none;
+    }
+    .rule-list li {
+      padding: 12px;
+      margin: 8px 0;
+      background: #f8f9fa;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rule-count {
+      background: #3498db;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+    .file-list {
+      list-style: none;
+    }
+    .file-list li {
+      padding: 10px;
+      margin: 6px 0;
+      background: #fff;
+      border: 1px solid #ecf0f1;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    .config-list {
+      list-style: none;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .config-list li {
+      padding: 8px 0;
+      color: #555;
+    }
+    .config-list strong {
+      color: #2c3e50;
+    }
+    .timestamp {
+      text-align: center;
+      color: #95a5a6;
+      font-size: 0.9em;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #ecf0f1;
+    }
+    code {
+      background: #f8f9fa;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #e74c3c;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Code Quality Analysis</h1>
+      <p>Vault Navigator - SonarJS Quality Report</p>
+    </div>
+    <div class="content"><h2>Configuration</h2><ul class="rule-list"><li><span class="rule-name">Cognitive Complexity</span><span class="rule-count">≤ 10</span></li><li><span class="rule-name">Cyclomatic Complexity</span><span class="rule-count">≤ 10</span></li><li><span class="rule-name">File Size</span><span class="rule-count">≤ 250 lines</span></li><li><span class="rule-name">Function Size</span><span class="rule-count">≤ 50 lines</span></li></ul><h2>Summary</h2><ul class="rule-list"><li><span class="rule-name">Files Analyzed</span><span class="rule-count">103</span></li><li><span class="rule-name">Total Issues</span><span class="rule-count">7115</span></li><li><span class="rule-name">Errors</span><span class="rule-count">248</span></li><li><span class="rule-name">Warnings</span><span class="rule-count">6867</span></li></ul><h2>Issues by Rule</h2><ul class="rule-list"><li><span class="rule-name">@typescript-eslint/no-unused-expressions</span><span class="rule-count">5077 violation(s)</span></li><li><span class="rule-name">complexity</span><span class="rule-count">582 violation(s)</span></li><li><span class="rule-name">sonarjs/cognitive-complexity</span><span class="rule-count">556 violation(s)</span></li><li><span class="rule-name">@typescript-eslint/no-unused-vars</span><span class="rule-count">431 violation(s)</span></li><li><span class="rule-name">sonarjs/no-duplicate-string</span><span class="rule-count">147 violation(s)</span></li><li><span class="rule-name">@typescript-eslint/no-require-imports</span><span class="rule-count">100 violation(s)</span></li><li><span class="rule-name">@typescript-eslint/no-explicit-any</span><span class="rule-count">68 violation(s)</span></li><li><span class="rule-name">@typescript-eslint/no-this-alias</span><span class="rule-count">38 violation(s)</span></li><li><span class="rule-name">sonarjs/no-inverted-boolean-check</span><span class="rule-count">31 violation(s)</span></li><li><span class="rule-name">max-lines-per-function</span><span class="rule-count">31 violation(s)</span></li></ul><h2>Top Issues</h2><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-error">error</span>
+        <span> **@typescript-eslint/no-require-imports** - .next/server/app/_not-found/page.js:1:79</span>
+      </div>
+    </div><p>   A `require()` style import is forbidden.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-error">error</span>
+        <span> **@typescript-eslint/no-require-imports** - .next/server/app/_not-found/page.js:1:154</span>
+      </div>
+    </div><p>   A `require()` style import is forbidden.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-error">error</span>
+        <span> **@typescript-eslint/no-require-imports** - .next/server/app/_not-found/page.js:1:251</span>
+      </div>
+    </div><p>   A `require()` style import is forbidden.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-error">error</span>
+        <span> **@typescript-eslint/no-require-imports** - .next/server/app/_not-found/page.js:1:339</span>
+      </div>
+    </div><p>   A `require()` style import is forbidden.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-error">error</span>
+        <span> **@typescript-eslint/no-require-imports** - .next/server/app/_not-found/page.js:1:378</span>
+      </div>
+    </div><p>   A `require()` style import is forbidden.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-warning">warning</span>
+        <span> **@typescript-eslint/no-unused-expressions** - .next/server/app/_not-found/page.js:1:29</span>
+      </div>
+    </div><p>   Expected an assignment or function call and instead saw an expression.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-warning">warning</span>
+        <span> **@typescript-eslint/no-unused-expressions** - .next/server/app/_not-found/page.js:1:915</span>
+      </div>
+    </div><p>   Expected an assignment or function call and instead saw an expression.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-warning">warning</span>
+        <span> **@typescript-eslint/no-unused-expressions** - .next/server/app/_not-found/page.js:1:1362</span>
+      </div>
+    </div><p>   Expected an assignment or function call and instead saw an expression.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-warning">warning</span>
+        <span> **complexity** - .next/server/app/_not-found/page.js:1:2418</span>
+      </div>
+    </div><p>   Async function 'L' has a complexity of 42. Maximum allowed is 10.</p><div class="issue-item">
+      <div class="issue-header">
+        <span class="severity-badge severity-warning">warning</span>
+        <span> **sonarjs/cognitive-complexity** - .next/server/app/_not-found/page.js:1:2433</span>
+      </div>
+    </div><p>   Refactor this function to reduce its Cognitive Complexity from 12 to the 10 allowed.</p><h2>Files with Most Issues</h2><ul class="rule-list"><li><span class="rule-name">.next/server/chunks/759.js</span><span class="rule-count">1758 issue(s)</span></li><li><span class="rule-name">.next/static/chunks/c4bc6b85-83ebe55d7d300fac.js</span><span class="rule-count">851 issue(s)</span></li><li><span class="rule-name">.next/static/chunks/990-43cb8bdcfe1fa02f.js</span><span class="rule-count">728 issue(s)</span></li><li><span class="rule-name">.next/static/chunks/framework-82fce76e1725f96c.js</span><span class="rule-count">707 issue(s)</span></li><li><span class="rule-name">.next/static/chunks/573-95d28afc69bf6113.js</span><span class="rule-count">608 issue(s)</span></li><li><span class="rule-name">.next/static/chunks/polyfills-42372ed130431b0a.js</span><span class="rule-count">438 issue(s)</span></li><li><span class="rule-name">.next/server/chunks/708.js</span><span class="rule-count">413 issue(s)</span></li><li><span class="rule-name">.next/static/chunks/main-ff44eb7b8b2aa9a7.js</span><span class="rule-count">365 issue(s)</span></li><li><span class="rule-name">.next/server/chunks/343.js</span><span class="rule-count">224 issue(s)</span></li><li><span class="rule-name">.next/server/pages/_error.js</span><span class="rule-count">211 issue(s)</span></li></ul>
+      <div class="timestamp">
+        Generated: Fri, 28 Nov 2025 03:44:45 GMT<br>
+        <a href="index.html" style="color: #3498db; text-decoration: none;">← Back to Reports</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
