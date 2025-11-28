@@ -82,6 +82,17 @@ open http://localhost:3000
 3. Choose to update an existing configuration or create a new one
 4. Fill in remaining details and you're done!
 
+## 📚 Documentation
+
+Comprehensive guides and references for Vault Navigator:
+
+- **[Quick Start Guide](docs/quickstart.md)** - Get up and running in 5 minutes with step-by-step instructions
+- **[Development Guide](docs/development.md)** - Coding conventions, patterns, and best practices for contributing
+- **[Architecture](docs/architecture.md)** - Design decisions, technology choices, and architectural patterns
+- **[Testing Strategy](docs/testing-strategy.md)** - Comprehensive testing approach for hooks, services, and utilities
+- **[Project Summary](docs/project-summary.md)** - High-level overview and feature summary
+- **[Troubleshooting](docs/troubleshooting.md)** - Common issues, solutions, and debugging tips
+
 ## 📖 Usage Guide
 
 ### Browsing Secrets
@@ -259,9 +270,14 @@ pnpm dev          # Start dev server (localhost:3000)
 pnpm build        # Production build
 pnpm start        # Start production server
 
+# Testing
+pnpm test         # Run unit tests (watch mode)
+pnpm test:ui      # Run tests with UI
+pnpm test:coverage      # Generate coverage report
+pnpm test:mutation      # Run mutation testing
+
 # Code Quality
 pnpm lint         # Run ESLint
-pnpm type-check   # TypeScript type checking
 ```
 
 ### Environment Variables
@@ -286,6 +302,34 @@ This project follows strict code quality standards:
 - ✅ **DRY**: No code duplication
 - ✅ **Single Responsibility**: Focused modules
 - ✅ **Custom Hooks**: Testable business logic
+
+### Testing Strategy
+
+Comprehensive testing focused on **business logic**, not UI:
+
+**What We Test:**
+- ✅ **Custom Hooks** - State management and business logic
+- ✅ **Services** - VaultCache, VaultClient
+- ✅ **Utilities** - Path utils, logger, tree utils
+- ✅ **Storage** - LocalStorage wrapper
+
+**What We Skip:**
+- ❌ **UI Components** - Visual rendering (manual QA)
+- ❌ **Pages** - Next.js routes
+- ❌ **JSX Templates** - Presentation layer
+
+**Testing Tools:**
+- **Vitest** - Fast, modern test runner
+- **React Testing Library** - Hook testing
+- **Stryker Mutator** - Mutation testing for code quality
+
+**Coverage Goals:**
+- Overall: 80%+
+- Hooks: 90%+
+- Services: 90%+
+- Utilities: 85%+
+
+See [Testing Strategy](docs/testing-strategy.md) for complete documentation.
 
 ### Recent Improvements
 
