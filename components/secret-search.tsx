@@ -6,6 +6,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useVault } from "@/contexts/vault-context";
 import { SecretListItem } from "@/lib/types";
+import { logger } from "@/lib/utils/logger";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SecretSearchProps {
@@ -74,7 +75,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
       } catch (error) {
         // Only log error if it's not an abort
         if (!abortController.signal.aborted) {
-          console.error("Search error:", error);
+          logger.error("Search error", error);
           setResults([]);
         }
       } finally {

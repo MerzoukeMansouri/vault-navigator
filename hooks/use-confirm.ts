@@ -15,7 +15,8 @@ interface ConfirmOptions {
 
 interface ConfirmState extends ConfirmOptions {
   open: boolean;
-  onConfirm: () => void;
+  onConfirm?: () => void;
+  onCancel?: () => void;
 }
 
 export function useConfirm() {
@@ -26,7 +27,6 @@ export function useConfirm() {
     confirmText: "Confirm",
     cancelText: "Cancel",
     variant: "default",
-    onConfirm: () => {},
   });
 
   const confirm = useCallback((options: ConfirmOptions): Promise<boolean> => {
@@ -38,12 +38,22 @@ export function useConfirm() {
           resolve(true);
           setState((prev) => ({ ...prev, open: false }));
         },
+        onCancel: () => {
+          resolve(false);
+          setState((prev) => ({ ...prev, open: false }));
+        },
       });
     });
   }, []);
 
   const handleClose = useCallback(() => {
-    setState((prev) => ({ ...prev, open: false }));
+    setState((prev) => {
+      // Trigger cancel if there's a pending promise
+      if (prev.onCancel) {
+        prev.onCancel();
+      }
+      return { ...prev, open: false };
+    });
   }, []);
 
   return {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Plus, Loader2, Save, X, Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -12,88 +12,38 @@ import {
   CardTitle,
   CardDescription,
 } from "./ui/card";
-import { useVault } from "@/contexts/vault-context";
 import { Textarea } from "./ui/textarea";
+import { useSecretCreator } from "@/hooks/use-secret-creator";
 
 interface SecretCreatorProps {
   onCreated?: (path: string) => void;
 }
 
 export function SecretCreator({ onCreated }: SecretCreatorProps) {
-  const { client } = useVault();
-  const [isOpen, setIsOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [mode, setMode] = useState<"form" | "json">("form");
-  const [path, setPath] = useState("");
-  const [jsonValue, setJsonValue] = useState("{}");
-  const [jsonError, setJsonError] = useState("");
-  const [formFields, setFormFields] = useState<Record<string, string>>({});
-
-  const handleAddField = () => {
-    const key = `field_${Object.keys(formFields).length + 1}`;
-    setFormFields({ ...formFields, [key]: "" });
-  };
-
-  const handleRemoveField = (key: string) => {
-    const newFields = { ...formFields };
-    delete newFields[key];
-    setFormFields(newFields);
-  };
-
-  const handleUpdateField = (oldKey: string, newKey: string, value: string) => {
-    const newFields = { ...formFields };
-    delete newFields[oldKey];
-    newFields[newKey] = value;
-    setFormFields(newFields);
-  };
-
-  const handleCreate = async () => {
-    if (!client || !path.trim()) return;
-
-    setSaving(true);
-    try {
-      let dataToSave: Record<string, unknown>;
-
-      if (mode === "json") {
-        try {
-          dataToSave = JSON.parse(jsonValue);
-          setJsonError("");
-        } catch {
-          setJsonError("Invalid JSON");
-          setSaving(false);
-          return;
-        }
-      } else {
-        dataToSave = formFields;
-      }
-
-      const fullPath = path.startsWith("secret/")
-        ? path
-        : `secret/${path}`;
-
-      await client.writeSecret(fullPath, dataToSave);
-      onCreated?.(fullPath);
-      handleClose();
-    } catch (error: unknown) {
-      console.error("Error creating secret:", error);
-      alert(`Error creating secret: ${error instanceof Error ? error.message : "Unknown error"}`);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleClose = () => {
-    setIsOpen(false);
-    setPath("");
-    setFormFields({});
-    setJsonValue("{}");
-    setJsonError("");
-    setMode("form");
-  };
+  const {
+    isOpen,
+    saving,
+    mode,
+    path,
+    jsonValue,
+    jsonError,
+    formFields,
+    setMode,
+    setPath,
+    setJsonValue,
+    setJsonError,
+    handleAddField,
+    handleRemoveField,
+    handleUpdateField,
+    switchToJsonMode,
+    handleCreate,
+    handleOpen,
+    handleClose,
+  } = useSecretCreator({ onCreated });
 
   if (!isOpen) {
     return (
-      <Button onClick={() => setIsOpen(true)} className="gap-2">
+      <Button onClick={handleOpen} className="gap-2">
         <Plus className="h-4 w-4" />
         Create Secret
       </Button>
@@ -133,10 +83,7 @@ export function SecretCreator({ onCreated }: SecretCreatorProps) {
           <Button
             size="sm"
             variant={mode === "json" ? "default" : "outline"}
-            onClick={() => {
-              setMode("json");
-              setJsonValue(JSON.stringify(formFields, null, 2));
-            }}
+            onClick={switchToJsonMode}
           >
             JSON
           </Button>

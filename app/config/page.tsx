@@ -1,6 +1,7 @@
 "use client";
 
 import { ConfigManager } from "@/components/config-manager";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
@@ -10,7 +11,9 @@ function ConfigPageContent() {
 
   return (
     <main className="container mx-auto px-6 py-8">
-      <ConfigManager prefilledToken={prefilledToken || undefined} />
+      <ErrorBoundary>
+        <ConfigManager prefilledToken={prefilledToken || undefined} />
+      </ErrorBoundary>
     </main>
   );
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import { VaultProvider } from "@/contexts/vault-context";
 import { Header } from "@/components/header";
 import { TokenDetectionProvider } from "@/components/token-detection-provider";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
               <Header />
               {children}
             </div>
+            <Toaster richColors position="top-right" />
           </TokenDetectionProvider>
         </VaultProvider>
       </body>

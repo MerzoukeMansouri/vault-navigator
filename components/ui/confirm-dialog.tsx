@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface ConfirmDialogProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
   title: string;
   description: string;
   confirmText?: string;
@@ -33,11 +33,6 @@ export function ConfirmDialog({
   variant = "default",
 }: ConfirmDialogProps) {
   if (!open) return null;
-
-  const handleConfirm = () => {
-    onConfirm();
-    onClose();
-  };
 
   return (
     <AnimatePresence>
@@ -67,7 +62,7 @@ export function ConfirmDialog({
                 </Button>
                 <Button
                   variant={variant === "destructive" ? "destructive" : "default"}
-                  onClick={handleConfirm}
+                  onClick={onConfirm || onClose}
                 >
                   {confirmText}
                 </Button>

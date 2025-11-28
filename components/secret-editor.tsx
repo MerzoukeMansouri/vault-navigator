@@ -11,6 +11,7 @@ import { SecretJsonEditor } from "./secret/secret-json-editor";
 import { useSecretEditor } from "@/hooks/use-secret-editor";
 import { useConfirm } from "@/hooks/use-confirm";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 interface SecretEditorProps {
   path: string;
@@ -55,8 +56,9 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
     if (confirmed) {
       try {
         await handleDelete();
+        toast.success("Secret deleted successfully");
       } catch (error) {
-        alert(error instanceof Error ? error.message : "Failed to delete secret");
+        toast.error(error instanceof Error ? error.message : "Failed to delete secret");
       }
     }
   };
@@ -64,8 +66,9 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
   const onSave = async () => {
     try {
       await handleSave();
+      toast.success("Secret saved successfully");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to save secret");
+      toast.error(error instanceof Error ? error.message : "Failed to save secret");
     }
   };
 

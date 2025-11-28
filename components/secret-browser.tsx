@@ -12,6 +12,7 @@ import {
 import { useVault } from "@/contexts/vault-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { VaultPathUtils } from "@/lib/utils/vault-path-utils";
+import { logger } from "@/lib/utils/logger";
 
 interface SecretBrowserProps {
   onSelectSecret: (path: string) => void;
@@ -123,7 +124,7 @@ export function SecretBrowser({
         }))
       );
     } catch (error: unknown) {
-      console.error("Error loading secrets:", error);
+      logger.error("Error loading secrets", error);
       setError(error instanceof Error ? error.message : "Failed to load secrets");
     } finally {
       setLoading(false);
@@ -177,7 +178,7 @@ export function SecretBrowser({
         }))
       );
     } catch (error) {
-      console.error("Error loading children:", error);
+      logger.error("Error loading children", error);
       setTree((prev) =>
         updateNodeInTree(prev, node.path, (n) => ({ ...n, isLoading: false }))
       );

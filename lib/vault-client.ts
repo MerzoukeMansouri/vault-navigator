@@ -5,6 +5,36 @@ import { VaultPathUtils } from "./utils/vault-path-utils";
 import { logger } from "./utils/logger";
 import { VAULT_CONFIG } from "./constants";
 
+/**
+ * Client for interacting with HashiCorp Vault KV v2 secrets engine
+ *
+ * Features:
+ * - Automatic caching with TTL for lists and secrets
+ * - Namespace support for Vault Enterprise
+ * - CORS-free operation using Next.js API proxy
+ * - Comprehensive error handling with typed errors
+ *
+ * @example
+ * ```typescript
+ * const client = new VaultClient({
+ *   url: 'https://vault.example.com',
+ *   token: 'hvs.xxxxx',
+ *   namespace: 'my-namespace' // Optional
+ * });
+ *
+ * // List secrets
+ * const secrets = await client.listSecrets('secret/myapp');
+ *
+ * // Read a secret
+ * const secret = await client.readSecret('secret/myapp/database');
+ *
+ * // Write a secret
+ * await client.writeSecret('secret/myapp/api', {
+ *   key: 'value',
+ *   password: 'secret123'
+ * });
+ * ```
+ */
 export class VaultClient {
   private client: AxiosInstance;
   private config: VaultConfig;
@@ -12,6 +42,12 @@ export class VaultClient {
   private secretCache: VaultCache<Secret>;
   private debugMode: boolean = false;
 
+  /**
+   * Create a new VaultClient instance
+   *
+   * @param config - Vault connection configuration
+   * @param debugMode - Enable debug logging (default: false)
+   */
   constructor(config: VaultConfig, debugMode: boolean = false) {
     this.config = config;
     this.debugMode = debugMode;
@@ -62,6 +98,11 @@ export class VaultClient {
     }
   }
 
+  /**
+   * Update the Vault namespace and clear cache
+   *
+   * @param namespace - New namespace to use (undefined to remove namespace)
+   */
   updateNamespace(namespace?: string) {
     this.config.namespace = namespace;
     if (namespace) {
@@ -73,11 +114,18 @@ export class VaultClient {
     this.clearCache();
   }
 
+  /**
+   * Clear all cached data (lists and secrets)
+   */
   clearCache() {
     this.listCache.clear();
     this.secretCache.clear();
   }
 
+  /**
+   * Convert various error types to VaultError format
+   * @private
+   */
   private handleError(error: unknown): VaultError {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{ errors?: string[] }>;
@@ -89,6 +137,11 @@ export class VaultClient {
     return { message: error instanceof Error ? error.message : "Unknown error occurred" };
   }
 
+  /**
+   * Test connection to Vault server
+   *
+   * @returns Object with success status and optional error message
+   */
   async testConnection(): Promise<{ success: boolean; error?: string }> {
     try {
       await this.client.get("/v1/sys/health");
@@ -99,6 +152,22 @@ export class VaultClient {
     }
   }
 
+  /**
+   * List secrets and folders at a given path
+   * Results are cached with TTL from VAULT_CONFIG.CACHE_TTL.LIST
+   *
+   * @param path - Path to list (defaults to root of secret mount)
+   * @returns Array of secrets and folders with metadata
+   * @throws {VaultError} If the request fails
+   *
+   * @example
+   * ```typescript
+   * const items = await client.listSecrets('secret/myapp');
+   * items.forEach(item => {
+   *   console.log(item.isFolder ? '📁' : '🔑', item.name);
+   * });
+   * ```
+   */
   async listSecrets(path: string = ""): Promise<SecretListItem[]> {
     // Check cache first
     const cacheKey = VaultPathUtils.buildCacheKey("list", path, this.config.namespace);
@@ -148,6 +217,21 @@ export class VaultClient {
     }
   }
 
+  /**
+   * Read a secret's data and metadata
+   * Results are cached with TTL from VAULT_CONFIG.CACHE_TTL.SECRET
+   *
+   * @param path - Full path to the secret
+   * @returns Secret object with data and metadata
+   * @throws {VaultError} If the secret doesn't exist or request fails
+   *
+   * @example
+   * ```typescript
+   * const secret = await client.readSecret('secret/myapp/database');
+   * console.log(secret.data.username);
+   * console.log(secret.metadata.version);
+   * ```
+   */
   async readSecret(path: string): Promise<Secret> {
     // Check cache first
     const cacheKey = VaultPathUtils.buildCacheKey("secret", path, this.config.namespace);
@@ -180,6 +264,22 @@ export class VaultClient {
     }
   }
 
+  /**
+   * Write (create or update) a secret
+   * Automatically invalidates cache for the secret and parent folder list
+   *
+   * @param path - Full path where the secret should be written
+   * @param data - Secret data as key-value pairs
+   * @throws {VaultError} If the write operation fails
+   *
+   * @example
+   * ```typescript
+   * await client.writeSecret('secret/myapp/api', {
+   *   api_key: 'sk-xxxxx',
+   *   endpoint: 'https://api.example.com'
+   * });
+   * ```
+   */
   async writeSecret(
     path: string,
     data: Record<string, unknown>
@@ -206,6 +306,18 @@ export class VaultClient {
     }
   }
 
+  /**
+   * Delete a secret and all its versions
+   * Automatically invalidates cache for the secret and parent folder list
+   *
+   * @param path - Full path to the secret to delete
+   * @throws {VaultError} If the delete operation fails
+   *
+   * @example
+   * ```typescript
+   * await client.deleteSecret('secret/myapp/old-api-key');
+   * ```
+   */
   async deleteSecret(path: string): Promise<void> {
     try {
       const url = VaultPathUtils.buildSecretUrl(path, "metadata");
@@ -229,6 +341,28 @@ export class VaultClient {
     }
   }
 
+  /**
+   * Recursively search for secrets by name or content
+   * Searches both secret names and their data content
+   *
+   * @param query - Search query (case-insensitive)
+   * @param basePath - Starting path for search (default: 'secret')
+   * @param signal - AbortSignal for cancelling search
+   * @param maxResults - Maximum number of results to return (default: 100)
+   * @param maxDepth - Maximum folder depth to search (default: 10)
+   * @returns Array of matching secrets
+   *
+   * @example
+   * ```typescript
+   * const abortController = new AbortController();
+   * const results = await client.searchSecrets(
+   *   'database',
+   *   'secret/myapp',
+   *   abortController.signal,
+   *   50
+   * );
+   * ```
+   */
   async searchSecrets(
     query: string,
     basePath: string = VAULT_CONFIG.DEFAULT_MOUNT,
@@ -326,6 +460,12 @@ export class VaultClient {
     return results.slice(0, maxResults); // Ensure we don't exceed maxResults
   }
 
+  /**
+   * List all KV secret mounts available on the Vault server
+   *
+   * @returns Array of mount point names
+   * @throws {VaultError} If the request fails
+   */
   async listMounts(): Promise<string[]> {
     try {
       const response = await this.client.get("/v1/sys/mounts");
