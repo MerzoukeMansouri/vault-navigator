@@ -57,3 +57,110 @@ jobs:
           name: build
           path: .next
           retention-days: 7
+
+  code-analysis:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Analyze code complexity
+        run: |
+          echo "# Code Quality Metrics" > code-analysis.md
+          echo "" >> code-analysis.md
+          echo "## Configuration" >> code-analysis.md
+          echo "- **Cognitive Complexity**: ≤ 10" >> code-analysis.md
+          echo "- **File Size**: ≤ 250 lines" >> code-analysis.md
+          echo "- **Function Size**: ≤ 50 lines" >> code-analysis.md
+          echo "" >> code-analysis.md
+          echo "## Statistics" >> code-analysis.md
+          echo "" >> code-analysis.md
+          echo "### Production Files Analyzed" >> code-analysis.md
+          echo "\`\`\`" >> code-analysis.md
+          find . -type f \( -name "*.ts" -o -name "*.tsx" \) \
+            ! -path "*/node_modules/*" \
+            ! -path "*/.next/*" \
+            ! -path "*/__tests__/*" \
+            ! -name "*.test.*" \
+            ! -name "*.config.*" \
+            ! -name "*.d.ts" \
+            | wc -l >> code-analysis.md
+          echo "\`\`\`" >> code-analysis.md
+          echo "" >> code-analysis.md
+          echo "### Lines of Code (excluding tests)" >> code-analysis.md
+          echo "\`\`\`" >> code-analysis.md
+          find . -type f \( -name "*.ts" -o -name "*.tsx" \) \
+            ! -path "*/node_modules/*" \
+            ! -path "*/.next/*" \
+            ! -path "*/__tests__/*" \
+            ! -name "*.test.*" \
+            ! -name "*.config.*" \
+            -exec wc -l {} + | tail -1 >> code-analysis.md
+          echo "\`\`\`" >> code-analysis.md
+
+      - name: Run ESLint with complexity checks
+        continue-on-error: true
+        run: |
+          pnpm exec eslint . \
+            --ext .ts,.tsx \
+            --format json \
+            --output-file eslint-report.json || true
+
+      - name: Check for large files
+        run: |
+          echo "" >> code-analysis.md
+          echo "## Large Files (>250 lines)" >> code-analysis.md
+          echo "\`\`\`" >> code-analysis.md
+          find . -type f \( -name "*.ts" -o -name "*.tsx" \) \
+            ! -path "*/node_modules/*" \
+            ! -path "*/.next/*" \
+            ! -path "*/__tests__/*" \
+            ! -name "*.test.*" \
+            ! -name "*.config.*" \
+            -exec wc -l {} + \
+            | sort -rn \
+            | awk '$1 > 250 {print $1 " lines: " $2}' \
+            >> code-analysis.md || echo "None found!" >> code-analysis.md
+          echo "\`\`\`" >> code-analysis.md
+
+      - name: Upload analysis report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-analysis-report
+          path: |
+            code-analysis.md
+            eslint-report.json
+          retention-days: 30
+
+      - name: Display report summary
+        run: cat code-analysis.md
