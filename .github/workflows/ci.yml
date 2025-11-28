@@ -99,64 +99,83 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Analyze code complexity
-        run: |
-          echo "# Code Quality Metrics" > code-analysis.md
-          echo "" >> code-analysis.md
-          echo "## Configuration" >> code-analysis.md
-          echo "- **Cognitive Complexity**: ≤ 10" >> code-analysis.md
-          echo "- **File Size**: ≤ 250 lines" >> code-analysis.md
-          echo "- **Function Size**: ≤ 50 lines" >> code-analysis.md
-          echo "" >> code-analysis.md
-          echo "## Statistics" >> code-analysis.md
-          echo "" >> code-analysis.md
-          echo "### Production Files Analyzed" >> code-analysis.md
-          echo "\`\`\`" >> code-analysis.md
-          find . -type f \( -name "*.ts" -o -name "*.tsx" \) \
-            ! -path "*/node_modules/*" \
-            ! -path "*/.next/*" \
-            ! -path "*/__tests__/*" \
-            ! -name "*.test.*" \
-            ! -name "*.config.*" \
-            ! -name "*.d.ts" \
-            | wc -l >> code-analysis.md
-          echo "\`\`\`" >> code-analysis.md
-          echo "" >> code-analysis.md
-          echo "### Lines of Code (excluding tests)" >> code-analysis.md
-          echo "\`\`\`" >> code-analysis.md
-          find . -type f \( -name "*.ts" -o -name "*.tsx" \) \
-            ! -path "*/node_modules/*" \
-            ! -path "*/.next/*" \
-            ! -path "*/__tests__/*" \
-            ! -name "*.test.*" \
-            ! -name "*.config.*" \
-            -exec wc -l {} + | tail -1 >> code-analysis.md
-          echo "\`\`\`" >> code-analysis.md
-
-      - name: Run ESLint with complexity checks
+      - name: Run SonarJS Code Analysis
         continue-on-error: true
-        run: |
-          pnpm exec eslint . \
-            --ext .ts,.tsx \
-            --format json \
-            --output-file eslint-report.json || true
+        run: pnpm analyze || true
 
-      - name: Check for large files
+      - name: Generate Analysis Report
         run: |
-          echo "" >> code-analysis.md
-          echo "## Large Files (>250 lines)" >> code-analysis.md
-          echo "\`\`\`" >> code-analysis.md
-          find . -type f \( -name "*.ts" -o -name "*.tsx" \) \
-            ! -path "*/node_modules/*" \
-            ! -path "*/.next/*" \
-            ! -path "*/__tests__/*" \
-            ! -name "*.test.*" \
-            ! -name "*.config.*" \
-            -exec wc -l {} + \
-            | sort -rn \
-            | awk '$1 > 250 {print $1 " lines: " $2}' \
-            >> code-analysis.md || echo "None found!" >> code-analysis.md
-          echo "\`\`\`" >> code-analysis.md
+          node -e "
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync('eslint-report.json', 'utf8'));
+
+          let md = '# Code Quality Analysis Report\\n\\n';
+          md += '## Configuration\\n';
+          md += '- **Cognitive Complexity**: ≤ 10\\n';
+          md += '- **Cyclomatic Complexity**: ≤ 10\\n';
+          md += '- **File Size**: ≤ 250 lines\\n';
+          md += '- **Function Size**: ≤ 50 lines\\n\\n';
+
+          const allMessages = report.flatMap(r => r.messages.map(m => ({...m, file: r.filePath})));
+          const errors = allMessages.filter(m => m.severity === 2);
+          const warnings = allMessages.filter(m => m.severity === 1);
+
+          md += '## Summary\\n';
+          md += \`- **Files Analyzed**: \${report.length}\\n\`;
+          md += \`- **Total Issues**: \${allMessages.length}\\n\`;
+          md += \`- **Errors**: \${errors.length}\\n\`;
+          md += \`- **Warnings**: \${warnings.length}\\n\\n\`;
+
+          // Group by rule
+          const byRule = {};
+          allMessages.forEach(m => {
+            const rule = m.ruleId || 'unknown';
+            byRule[rule] = (byRule[rule] || 0) + 1;
+          });
+
+          md += '## Issues by Rule\\n';
+          Object.entries(byRule)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .forEach(([rule, count]) => {
+              md += \`- **\${rule}**: \${count} violation(s)\\n\`;
+            });
+          md += '\\n';
+
+          // Top issues
+          if (errors.length > 0 || warnings.length > 0) {
+            md += '## Top Issues\\n\\n';
+            const topIssues = [...errors.slice(0, 5), ...warnings.slice(0, 5)];
+            topIssues.forEach(issue => {
+              const severity = issue.severity === 2 ? '🔴' : '🟡';
+              const file = issue.file.replace(process.cwd() + '/', '');
+              md += \`\${severity} **\${issue.ruleId}** - \${file}:\${issue.line}:\${issue.column}\\n\`;
+              md += \`   \${issue.message}\\n\\n\`;
+            });
+          }
+
+          // Files with most issues
+          const fileIssues = {};
+          report.forEach(r => {
+            if (r.messages.length > 0) {
+              const file = r.filePath.replace(process.cwd() + '/', '');
+              fileIssues[file] = r.messages.length;
+            }
+          });
+
+          if (Object.keys(fileIssues).length > 0) {
+            md += '## Files with Most Issues\\n\\n';
+            Object.entries(fileIssues)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 10)
+              .forEach(([file, count]) => {
+                md += \`- **\${file}**: \${count} issue(s)\\n\`;
+              });
+          }
+
+          fs.writeFileSync('code-analysis.md', md);
+          "
+        shell: bash
 
       - name: Upload analysis report
         uses: actions/upload-artifact@v4
