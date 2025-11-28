@@ -4,6 +4,7 @@ A modern, production-ready UI for HashiCorp Vault built with Next.js 14, TypeScr
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black)](https://nextjs.org/)
+[![Code Quality](https://img.shields.io/badge/Code%20Quality-Reports-purple)](https://merzoukemansouri.github.io/vault-navigator/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ## ✨ Features
@@ -278,7 +279,22 @@ pnpm test:mutation      # Run mutation testing
 
 # Code Quality
 pnpm lint         # Run ESLint
+pnpm analyze      # Run SonarJS code analysis
 ```
+
+### Code Quality Reports
+
+View automated code quality analysis at **[Code Quality Reports](https://merzoukemansouri.github.io/vault-navigator/)**
+
+Our CI pipeline automatically analyzes code quality on every push using SonarJS rules:
+- **Cognitive Complexity**: Measures code understandability (threshold: ≤10)
+- **Cyclomatic Complexity**: Measures code paths (threshold: ≤10)
+- **File Size**: Maximum 250 lines per file
+- **Function Size**: Maximum 50 lines per function
+- **Code Duplication**: Detects duplicate strings and identical functions
+- **Code Smells**: Identifies maintainability issues
+
+Reports are deployed to GitHub Pages and updated automatically with each CI run.
 
 ### Environment Variables
 

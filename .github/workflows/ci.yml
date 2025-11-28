@@ -239,16 +239,16 @@ jobs:
 
       - name: Generate Enhanced HTML Report
         run: |
-          node -e "
+          cat > generate-html.js << 'JSEOF'
           const fs = require('fs');
           const md = fs.readFileSync('./reports/code-analysis.md', 'utf8');
-          const lines = md.split('\\n');
+          const lines = md.split('\n');
 
-          let html = \`<!DOCTYPE html>
-<html lang=\"en\">
+          let html = `<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset=\"UTF-8\">
-  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Code Quality Analysis - Vault Navigator</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -443,12 +443,12 @@ jobs:
   </style>
 </head>
 <body>
-  <div class=\"container\">
-    <div class=\"header\">
+  <div class="container">
+    <div class="header">
       <h1>📊 Code Quality Analysis</h1>
       <p>Vault Navigator - SonarJS Quality Report</p>
     </div>
-    <div class=\"content\">\`;
+    <div class="content">`;
 
           // Parse markdown and convert to enhanced HTML
           let inList = false;
@@ -460,47 +460,48 @@ jobs:
               continue;
             } else if (line.startsWith('## ')) {
               if (inList) { html += '</ul>'; inList = false; }
-              html += \`<h2>\${line.substring(3)}</h2>\`;
+              html += `<h2>${line.substring(3)}</h2>`;
             } else if (line.startsWith('- **')) {
-              if (!inList) { html += '<ul class=\"rule-list\">'; inList = true; }
+              if (!inList) { html += '<ul class="rule-list">'; inList = true; }
               const match = line.match(/- \*\*(.+?)\*\*: (.+)/);
               if (match) {
-                html += \`<li><span class=\"rule-name\">\${match[1]}</span><span class=\"rule-count\">\${match[2]}</span></li>\`;
+                html += `<li><span class="rule-name">${match[1]}</span><span class="rule-count">${match[2]}</span></li>`;
               }
             } else if (line.startsWith('- ')) {
-              if (!inList) { html += '<ul class=\"config-list\">'; inList = true; }
-              html += \`<li>\${line.substring(2).replace(/\*\*(.+?)\*\*/g, '<strong>\$1</strong>')}</li>\`;
+              if (!inList) { html += '<ul class="config-list">'; inList = true; }
+              html += `<li>${line.substring(2).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}</li>`;
             } else if (line.match(/^🔴|^🟡/)) {
               if (inList) { html += '</ul>'; inList = false; }
               const severity = line.startsWith('🔴') ? 'error' : 'warning';
-              html += \`<div class=\"issue-item\">
-                <div class=\"issue-header\">
-                  <span class=\"severity-badge severity-\${severity}\">\${severity}</span>
-                  <span>\${line.substring(2)}</span>
+              html += `<div class="issue-item">
+                <div class="issue-header">
+                  <span class="severity-badge severity-${severity}">${severity}</span>
+                  <span>${line.substring(2)}</span>
                 </div>
-              </div>\`;
+              </div>`;
             } else if (line.trim() === '') {
               if (inList) { html += '</ul>'; inList = false; }
             } else if (line.trim()) {
-              html += \`<p>\${line}</p>\`;
+              html += `<p>${line}</p>`;
             }
           }
 
           if (inList) html += '</ul>';
 
-          html += \`
-      <div class=\"timestamp\">
-        Generated: \${new Date().toUTCString()}<br>
-        <a href=\"index.html\" style=\"color: #3498db; text-decoration: none;\">← Back to Reports</a>
+          html += `
+      <div class="timestamp">
+        Generated: ${new Date().toUTCString()}<br>
+        <a href="index.html" style="color: #3498db; text-decoration: none;">← Back to Reports</a>
       </div>
     </div>
   </div>
 </body>
-</html>\`;
+</html>`;
 
           fs.writeFileSync('./reports/code-analysis.html', html);
-          "
-        shell: bash
+          JSEOF
+          node generate-html.js
+          rm generate-html.js
 
       - name: Create index page
         run: |
