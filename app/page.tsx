@@ -19,7 +19,7 @@ export default function Home() {
   const { isAuthenticated } = useVault();
 
   // Check if maintenance mode is enabled
-  const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true' || true;
+  const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
 
   // If maintenance mode is enabled, show the maintenance page
   if (isMaintenanceMode) {
