@@ -1,43 +1,62 @@
 # PWA Icons Guide
 
-This application is configured as a Progressive Web App (PWA). You need to create the following icon files in this directory:
+This application is configured as a Progressive Web App (PWA) with properly sized icon files.
 
-## Required Icon Files
+## Current Status ✅
 
-1. `favicon.ico` - Traditional favicon (16x16 or 32x32)
+The following icons have been generated with **correct dimensions**:
+
+1. `favicon.ico` - 32x32 PNG favicon
 2. `icon-192x192.png` - 192x192 PNG icon (maskable)
 3. `icon-256x256.png` - 256x256 PNG icon
 4. `icon-384x384.png` - 384x384 PNG icon
 5. `icon-512x512.png` - 512x512 PNG icon
 
-## How to Generate Icons
+These are **simple placeholder icons** with "VN" (Vault Navigator) branding. You should replace them with your actual app icons for better visual appeal.
 
-You can use the provided `icon.svg` as a starting point and:
+## Quick Regeneration
 
-### Option 1: Using Online Tools
+If you need to regenerate the placeholder icons:
+
+```bash
+pnpm generate:icons
+```
+
+This will recreate all icons with proper dimensions using the built-in script.
+
+## How to Replace with Your Own Icons
+
+### Option 1: Using the Provided Script (Recommended)
+
+1. Edit `scripts/generate-icons.js` to customize the SVG design
+2. Run `pnpm generate:icons` to regenerate all sizes
+3. Icons will be automatically created in the correct dimensions
+
+### Option 2: Using Online Tools
+
 - Visit [RealFaviconGenerator](https://realfavicongenerator.net/)
 - Upload your logo/icon
 - Generate all required sizes
+- Download and replace files in `public/` directory
 
-### Option 2: Using ImageMagick (Command Line)
+### Option 3: Using ImageMagick (Command Line)
+
 ```bash
 # Install ImageMagick if not already installed
 # macOS: brew install imagemagick
 # Ubuntu: sudo apt-get install imagemagick
 
-# Generate icons from SVG
-magick icon.svg -resize 192x192 icon-192x192.png
-magick icon.svg -resize 256x256 icon-256x256.png
-magick icon.svg -resize 384x384 icon-384x384.png
-magick icon.svg -resize 512x512 icon-512x512.png
-magick icon.svg -resize 32x32 favicon.ico
+# Generate icons from your custom SVG
+magick your-icon.svg -resize 192x192 icon-192x192.png
+magick your-icon.svg -resize 256x256 icon-256x256.png
+magick your-icon.svg -resize 384x384 icon-384x384.png
+magick your-icon.svg -resize 512x512 icon-512x512.png
+magick your-icon.svg -resize 32x32 favicon.ico
 ```
 
-### Option 3: Using a Node.js Package
-```bash
-npm install -g pwa-asset-generator
-pwa-asset-generator icon.svg ./public
-```
+### Option 4: Using Sharp (Programmatically)
+
+The project includes `sharp` as a dev dependency. See `scripts/generate-icons.js` for an example of programmatic icon generation.
 
 ## Maskable Icons
 
