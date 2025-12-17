@@ -1,25 +1,24 @@
 "use client";
 
 import React from "react";
-import { Save, Edit2, X, Trash2, Loader2 } from "lucide-react";
+import { Save, Edit2, X, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { ConfirmDialog } from "./ui/confirm-dialog";
 import { SecretViewer } from "./secret/secret-viewer";
 import { SecretFormEditor } from "./secret/secret-form-editor";
 import { SecretJsonEditor } from "./secret/secret-json-editor";
+import { VersionSelector } from "./version-selector";
+import { VersionDiffViewer } from "./version-diff-viewer";
 import { useSecretEditor } from "@/hooks/use-secret-editor";
-import { useConfirm } from "@/hooks/use-confirm";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 interface SecretEditorProps {
   path: string;
-  onDeleted?: () => void;
   onSaved?: () => void;
 }
 
-export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
+export function SecretEditor({ path, onSaved }: SecretEditorProps) {
   const {
     secret,
     loading,
@@ -30,38 +29,26 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
     jsonError,
     copiedKey,
     formData,
+    versions,
+    loadingVersions,
     setEditMode,
     setJsonValue,
     setFormData,
     startEditing,
     cancelEditing,
     handleSave,
-    handleDelete,
     handleAddField,
     handleRemoveField,
     handleCopy,
-  } = useSecretEditor(path, onDeleted, onSaved);
+    readSecretVersion,
+  } = useSecretEditor(path, onSaved);
 
-  const { confirm, confirmState, handleClose } = useConfirm();
-
-  const onDelete = async () => {
-    const confirmed = await confirm({
-      title: "Delete Secret",
-      description: `Are you sure you want to delete ${path}? This action cannot be undone.`,
-      confirmText: "Delete",
-      cancelText: "Cancel",
-      variant: "destructive",
-    });
-
-    if (confirmed) {
-      try {
-        await handleDelete();
-        toast.success("Secret deleted successfully");
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to delete secret");
-      }
-    }
-  };
+  const [diffState, setDiffState] = React.useState<{
+    v1: number;
+    v2: number;
+    data1: Record<string, unknown>;
+    data2: Record<string, unknown>;
+  } | null>(null);
 
   const onSave = async () => {
     try {
@@ -69,6 +56,24 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
       toast.success("Secret saved successfully");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save secret");
+    }
+  };
+
+  const handleCompare = async (v1: number, v2: number) => {
+    try {
+      const data1 = await readSecretVersion(v1);
+      const data2 = await readSecretVersion(v2);
+
+      if (data1 && data2) {
+        setDiffState({
+          v1,
+          v2,
+          data1: data1.data,
+          data2: data2.data,
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to load version data for comparison");
     }
   };
 
@@ -101,26 +106,15 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
               <CardTitle className="truncate">{path}</CardTitle>
               <div className="flex gap-2">
                 {!isEditing ? (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={startEditing}
-                      className="gap-2"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={onDelete}
-                      className="gap-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </Button>
-                  </>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={startEditing}
+                    className="gap-2"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    Edit
+                  </Button>
                 ) : (
                   <>
                     <Button
@@ -164,12 +158,52 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
               </div>
             )}
 
+            {versions.length > 1 && !isEditing && (
+              <VersionSelector
+                versions={versions}
+                currentVersion={secret.metadata?.version || 1}
+                onCompare={handleCompare}
+                isLoading={loadingVersions}
+              />
+            )}
+
+            <AnimatePresence>
+              {diffState && (
+                <VersionDiffViewer
+                  version1={diffState.v1}
+                  version2={diffState.v2}
+                  data1={diffState.data1}
+                  data2={diffState.data2}
+                  onClose={() => setDiffState(null)}
+                />
+              )}
+            </AnimatePresence>
+
             {isEditing && (
               <div className="flex gap-2 border-b pb-3">
                 <Button
                   size="sm"
                   variant={editMode === "form" ? "default" : "outline"}
-                  onClick={() => setEditMode("form")}
+                  onClick={() => {
+                    if (editMode === "json") {
+                      // When switching from JSON to Form, parse JSON back to formData
+                      try {
+                        const parsed = JSON.parse(jsonValue);
+                        const stringified = Object.entries(parsed).reduce(
+                          (acc, [key, value]) => ({
+                            ...acc,
+                            [key]: typeof value === "string" ? value : JSON.stringify(value),
+                          }),
+                          {}
+                        );
+                        setFormData(stringified);
+                      } catch {
+                        toast.error("Invalid JSON - cannot switch to form mode");
+                        return;
+                      }
+                    }
+                    setEditMode("form");
+                  }}
                 >
                   Form
                 </Button>
@@ -211,17 +245,6 @@ export function SecretEditor({ path, onDeleted, onSaved }: SecretEditorProps) {
           </CardContent>
         </Card>
       </motion.div>
-
-      <ConfirmDialog
-        open={confirmState.open}
-        onClose={handleClose}
-        onConfirm={confirmState.onConfirm}
-        title={confirmState.title}
-        description={confirmState.description}
-        confirmText={confirmState.confirmText}
-        cancelText={confirmState.cancelText}
-        variant={confirmState.variant}
-      />
     </>
   );
 }

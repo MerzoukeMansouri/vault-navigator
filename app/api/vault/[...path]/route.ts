@@ -45,15 +45,8 @@ async function proxyToVault(request: NextRequest, pathSegments: string[]) {
   const vaultNamespace = request.headers.get("x-vault-namespace");
   const methodOverride = request.headers.get("x-http-method-override");
 
-  logger.debug("API Route - Proxy request", {
-    vaultUrl,
-    hasToken: !!vaultToken,
-    namespace: vaultNamespace,
-    methodOverride,
-  });
-
   if (!vaultUrl || !vaultToken) {
-    logger.warn("Missing Vault URL or token in request headers");
+    logger.error("Missing Vault URL or token in request headers");
     return NextResponse.json(
       {
         error: "Missing Vault URL or token",
@@ -68,7 +61,13 @@ async function proxyToVault(request: NextRequest, pathSegments: string[]) {
   }
 
   const path = pathSegments.join("/");
-  const url = `${vaultUrl}/${path}`;
+  const cleanVaultUrl = vaultUrl.endsWith("/") ? vaultUrl.slice(0, -1) : vaultUrl;
+
+  const searchParams = new URL(request.url, "http://localhost").searchParams;
+  const queryString = searchParams.toString();
+  const url = queryString
+    ? `${cleanVaultUrl}/${path}?${queryString}`
+    : `${cleanVaultUrl}/${path}`;
 
   try {
     const headers: Record<string, string> = {
@@ -80,35 +79,27 @@ async function proxyToVault(request: NextRequest, pathSegments: string[]) {
       headers["X-Vault-Namespace"] = vaultNamespace;
     }
 
-    let body = undefined;
-    if (request.method !== "GET" && request.method !== "HEAD") {
+    let body: string | undefined;
+
+    if (request.method === "POST" || request.method === "PUT") {
       try {
-        body = await request.text();
-      } catch {
-        // No body
+        const bodyText = await request.text();
+        if (bodyText) body = bodyText;
+      } catch (error) {
+        logger.error("Failed to read request body", error);
       }
     }
 
-    // Use method override if provided (for Vault's LIST method)
     const httpMethod = methodOverride || request.method;
     const fetchOptions: RequestInit = {
       method: httpMethod,
       headers,
     };
 
-    // Add body for non-GET requests (but not for LIST operations)
-    if (body && httpMethod !== "GET" && httpMethod !== "HEAD" && httpMethod !== "LIST") {
-      fetchOptions.body = body;
-    }
+    if (body) fetchOptions.body = body;
 
     const response = await fetch(url, fetchOptions);
-
     const data = await response.text();
-
-    logger.debug("Vault response received", {
-      status: response.status,
-      path: pathSegments.join("/"),
-    });
 
     return new NextResponse(data, {
       status: response.status,

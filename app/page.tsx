@@ -26,10 +26,6 @@ export default function Home() {
     return <MaintenancePage />;
   }
 
-  const handleSecretDeleted = () => {
-    setSelectedPath(null);
-  };
-
   const handleSecretCreated = (path: string) => {
     setSelectedPath(path);
   };
@@ -93,7 +89,6 @@ export default function Home() {
               <SecretEditor
                 key={selectedPath}
                 path={selectedPath}
-                onDeleted={handleSecretDeleted}
               />
             ) : (
               <Card className="h-[calc(100vh-12rem)]">

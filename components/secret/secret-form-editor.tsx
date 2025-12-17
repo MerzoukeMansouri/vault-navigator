@@ -42,11 +42,14 @@ export function SecretFormEditor({
           />
           <Input
             value={value}
-            onChange={(e) =>
-              onFormDataChange({ ...formData, [key]: e.target.value })
-            }
-            className="flex-1 font-mono text-sm"
+            onChange={(e) => {
+              onFormDataChange({ ...formData, [key]: e.target.value });
+            }}
+            className="flex-1 font-mono text-sm text-foreground"
+            style={{ color: "inherit" }}
             aria-label={`Value for ${key}`}
+            type="text"
+            placeholder={`Enter ${key} value`}
           />
           <Button
             size="icon"

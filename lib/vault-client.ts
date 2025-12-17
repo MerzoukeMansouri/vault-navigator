@@ -287,21 +287,26 @@ export class VaultClient {
     try {
       const url = VaultPathUtils.buildSecretUrl(path, "data");
 
-      if (this.debugMode) {
-        logger.debug("Writing secret to", url);
-      }
+      logger.debug("Writing secret", {
+        path,
+        url,
+        dataKeys: Object.keys(data),
+        debugMode: this.debugMode,
+      });
 
-      await this.client.post(url, { data });
+      const response = await this.client.post(url, { data });
 
-      // Invalidate cache for this secret
+      logger.info("Secret written successfully", path);
+
+      // Clear all caches to ensure fresh reads
+      this.clearCache();
       const cacheKey = VaultPathUtils.buildCacheKey("secret", path, this.config.namespace);
       this.secretCache.invalidate(cacheKey);
-
-      // Invalidate parent folder list cache
       const parentPath = VaultPathUtils.extractParentPath(path);
       const listCacheKey = VaultPathUtils.buildCacheKey("list", parentPath, this.config.namespace);
       this.listCache.invalidate(listCacheKey);
     } catch (error) {
+      logger.error("Error writing secret", error);
       throw this.handleError(error);
     }
   }
@@ -336,6 +341,87 @@ export class VaultClient {
       const parentPath = VaultPathUtils.extractParentPath(path);
       const listCacheKey = VaultPathUtils.buildCacheKey("list", parentPath, this.config.namespace);
       this.listCache.invalidate(listCacheKey);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get version history metadata for a secret
+   * Returns an array of versions with timestamps
+   *
+   * @param path - Full path to the secret
+   * @returns Version history metadata
+   * @throws {VaultError} If the operation fails
+   *
+   * @example
+   * ```typescript
+   * const versions = await client.getVersionHistory('secret/myapp/api');
+   * console.log(versions);
+   * // [
+   * //   { version: 3, created_time: '2024-01-15T10:30:00Z' },
+   * //   { version: 2, created_time: '2024-01-14T15:20:00Z' },
+   * //   { version: 1, created_time: '2024-01-13T09:00:00Z' }
+   * // ]
+   * ```
+   */
+  async getVersionHistory(
+    path: string
+  ): Promise<Array<{ version: number; created_time: string }>> {
+    try {
+      const url = VaultPathUtils.buildSecretUrl(path, "metadata");
+
+      if (this.debugMode) {
+        logger.debug("Getting version history from", url);
+      }
+
+      const response = await this.client.get(url);
+      const metadata = response.data?.data;
+
+      if (!metadata?.versions) {
+        return [];
+      }
+
+      // Convert versions object to array and sort by version descending
+      return Object.entries(metadata.versions as Record<string, Record<string, unknown>>)
+        .map(([versionKey, versionData]) => ({
+          version: parseInt(versionKey, 10),
+          created_time: (versionData.created_time as string) || "",
+        }))
+        .sort((a, b) => b.version - a.version);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Read a specific version of a secret
+   *
+   * @param path - Full path to the secret
+   * @param version - Version number to read
+   * @returns Secret object with data and metadata for the specified version
+   * @throws {VaultError} If the read operation fails
+   *
+   * @example
+   * ```typescript
+   * const secret = await client.readSecretVersion('secret/myapp/api', 2);
+   * console.log(secret.data);
+   * console.log(secret.metadata.version); // 2
+   * ```
+   */
+  async readSecretVersion(path: string, version: number): Promise<Secret> {
+    try {
+      const baseUrl = VaultPathUtils.buildSecretUrl(path, "data");
+
+      const response = await this.client.get(baseUrl, {
+        params: { version },
+      });
+
+      return {
+        path,
+        data: response.data?.data?.data || {},
+        metadata: response.data?.data?.metadata,
+      };
     } catch (error) {
       throw this.handleError(error);
     }
