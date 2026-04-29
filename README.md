@@ -10,9 +10,12 @@ A modern, production-ready UI for HashiCorp Vault built with Next.js 14, TypeScr
 ## ✨ Features
 
 ### Core Functionality
-- 🔐 **Token-Based Authentication**: Secure login using Vault tokens
+- 🔐 **Multiple Authentication Methods**:
+  - Token-based authentication
+  - **OIDC/SSO authentication** with automatic namespace support
+  - Automatic token detection from clipboard
 - 🎯 **Automatic Token Detection**: Intelligently detects Vault tokens from clipboard and offers quick configuration updates
-- 📁 **Namespace Management**: Seamless switching between multiple namespaces
+- 📁 **Namespace Management**: Seamless switching between multiple namespaces with OIDC integration
 - 🌳 **Secret Browser**: Interactive tree-view navigation with folder expansion and lazy loading
 - ✏️ **Secret Editor**: Full CRUD operations (Create, Read, Update, Delete) for secrets
 - 🔍 **Advanced Search**: Powerful search across all secrets by name or content with result highlighting
@@ -82,6 +85,20 @@ open http://localhost:3000
 2. Open Vault Navigator - it will automatically detect the token
 3. Choose to update an existing configuration or create a new one
 4. Fill in remaining details and you're done!
+
+#### Option 3: OIDC Authentication (Enterprise/SSO)
+1. Navigate to **"Configurations"** page
+2. Find the **"Login with OIDC"** card
+3. Select your Vault environment (Production/Non-Production)
+4. Enter your namespace (optional, e.g., `adeo/solution-offer-design`)
+5. Click **"Login with OIDC"**
+6. You'll be redirected to your organization's login page
+7. After authentication, you're automatically connected! 🎉
+
+**OIDC Setup Requirements:**
+- Set `NEXT_PUBLIC_APP_URL` in `.env.local` (see `.env.example`)
+- Your app's redirect URI must be registered in Vault's OIDC role configuration
+- Example redirect URI: `https://your-app.com/auth/vault/callback`
 
 ## 📚 Documentation
 

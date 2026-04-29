@@ -7,6 +7,7 @@ import { Card, CardContent } from "./ui/card";
 import { ConfirmDialog } from "./ui/confirm-dialog";
 import { ConfigForm } from "./config/config-form";
 import { ConfigCard } from "./config/config-card";
+import { VaultOIDCLogin } from "./vault-oidc-login";
 import { useConfigForm } from "@/hooks/use-config-form";
 import { useConfigList } from "@/hooks/use-config-list";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -89,6 +90,12 @@ export function ConfigManager({ prefilledToken }: ConfigManagerProps) {
           connectionStatus={connectionStatus}
           isEditing={!!formData.name}
         />
+      )}
+
+      {!isEditing && (
+        <div className="mb-6">
+          <VaultOIDCLogin />
+        </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

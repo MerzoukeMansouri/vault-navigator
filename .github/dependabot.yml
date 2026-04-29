@@ -1,0 +1,55 @@
+version: 2
+updates:
+  # Enable version updates for npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "MerzoukeMansouri"
+    assignees:
+      - "MerzoukeMansouri"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "security"
+    # Group all non-security updates together
+    groups:
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+    # Always create individual PRs for security updates
+    ignore:
+      # Ignore major version updates by default (require manual review)
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    # Automatically merge security patches
+    versioning-strategy: increase
+
+  # Monitor GitHub Actions for updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - "ci"
+      - "dependencies"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
