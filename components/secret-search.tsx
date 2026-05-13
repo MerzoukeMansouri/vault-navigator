@@ -14,7 +14,6 @@ interface SecretSearchProps {
 }
 
 const DEBOUNCE_DELAY = 300; // ms
-const MAX_RESULTS = 100;
 
 export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
   const { client } = useVault();
@@ -22,40 +21,31 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
   const [results, setResults] = useState<SecretListItem[]>([]);
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [hitLimit, setHitLimit] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Perform search with debouncing and cancellation
   useEffect(() => {
-    // Clear any existing debounce timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Cancel any in-flight search
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // Don't search if query is empty or too short
-    if (!query.trim() || query.trim().length < 2) {
+    if (!query.trim()) {
       setResults([]);
       setShowResults(false);
       setSearching(false);
-      setHitLimit(false);
       return;
     }
 
-    // Set searching state immediately to show feedback
     setSearching(true);
     setShowResults(true);
 
-    // Debounce the search
     debounceTimerRef.current = setTimeout(async () => {
       if (!client) return;
 
-      // Create new abort controller for this search
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
@@ -63,17 +53,13 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
         const searchResults = await client.searchSecrets(
           query.trim(),
           "secret",
-          abortController.signal,
-          MAX_RESULTS
+          abortController.signal
         );
 
-        // Only update if this search wasn't aborted
         if (!abortController.signal.aborted) {
           setResults(searchResults);
-          setHitLimit(searchResults.length >= MAX_RESULTS);
         }
       } catch (error) {
-        // Only log error if it's not an abort
         if (!abortController.signal.aborted) {
           logger.error("Search error", error);
           setResults([]);
@@ -85,7 +71,6 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
       }
     }, DEBOUNCE_DELAY);
 
-    // Cleanup function
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -95,7 +80,6 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Search is now handled by useEffect, so this just shows results
     if (query.trim()) {
       setShowResults(true);
     }
@@ -119,7 +103,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search secrets by name or content..."
+            placeholder="Search secrets by name..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9 pr-9"
@@ -149,7 +133,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-50 mt-2 w-full rounded-md border bg-popover p-2 shadow-lg"
+            className="absolute z-50 mt-2 w-full rounded-md border p-2 shadow-lg" style={{ backgroundColor: "white", color: "black" }}
           >
             {searching ? (
               <div className="flex items-center justify-center p-4">
@@ -157,19 +141,14 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
               </div>
             ) : results.length > 0 ? (
               <div className="max-h-96 overflow-y-auto space-y-1">
-                <div className="px-2 py-1 space-y-1">
+                <div className="px-2 py-1">
                   <div className="text-xs font-semibold text-muted-foreground">
                     Found {results.length} result{results.length !== 1 ? "s" : ""}
                   </div>
-                  {hitLimit && (
-                    <div className="text-xs text-amber-600 dark:text-amber-400">
-                      Showing first {MAX_RESULTS} results. Refine your search for more specific results.
-                    </div>
-                  )}
                 </div>
                 {results.map((result) => (
                   <button
-                    key={result.path}
+                    key={`${result.path}${result.isFolder ? "/" : ""}`}
                     onClick={() => handleSelectResult(result.path)}
                     className="flex w-full items-center gap-2 rounded px-2 py-2 text-sm hover:bg-accent transition-colors"
                   >
