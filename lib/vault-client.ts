@@ -428,60 +428,35 @@ export class VaultClient {
   }
 
   /**
-   * Recursively search for secrets by name or content
-   * Searches both secret names and their data content
+   * Recursively search for secrets by name
    *
    * @param query - Search query (case-insensitive)
    * @param basePath - Starting path for search (default: 'secret')
    * @param signal - AbortSignal for cancelling search
-   * @param maxResults - Maximum number of results to return (default: 100)
    * @param maxDepth - Maximum folder depth to search (default: 10)
    * @returns Array of matching secrets
-   *
-   * @example
-   * ```typescript
-   * const abortController = new AbortController();
-   * const results = await client.searchSecrets(
-   *   'database',
-   *   'secret/myapp',
-   *   abortController.signal,
-   *   50
-   * );
-   * ```
    */
   async searchSecrets(
     query: string,
     basePath: string = VAULT_CONFIG.DEFAULT_MOUNT,
     signal?: AbortSignal,
-    maxResults: number = 100,
+    _maxResults: number = 100,
     maxDepth: number = 10
   ): Promise<SecretListItem[]> {
     const results: SecretListItem[] = [];
-    const searchLower = query.toLowerCase();
+    const searchLower = query.toLowerCase().replace(/[-_]+$/, "");
     const processedPaths = new Set<string>();
 
     const searchRecursive = async (currentPath: string, depth: number = 0): Promise<void> => {
-      // Check if aborted
-      if (signal?.aborted) {
-        return;
-      }
-
-      // Check result limit
-      if (results.length >= maxResults) {
-        return;
-      }
-
-      // Check depth limit
-      if (depth > maxDepth) {
+      if (signal?.aborted || depth > maxDepth) {
         return;
       }
 
       try {
         const items = await this.listSecrets(currentPath);
 
-        // Process items in parallel
         const promises = items.map(async (item) => {
-          if (signal?.aborted || results.length >= maxResults) {
+          if (signal?.aborted) {
             return;
           }
 
@@ -489,51 +464,48 @@ export class VaultClient {
             ? `${currentPath}/${item.name}`
             : item.name;
 
-          // Avoid processing same path twice
-          if (processedPaths.has(fullPath)) {
+          // Use different keys for folder vs secret so a secret named "foo" and
+          // a folder "foo/" at the same level don't block each other.
+          const processedKey = item.isFolder ? `${fullPath}/` : fullPath;
+          if (processedPaths.has(processedKey)) {
             return;
           }
-          processedPaths.add(fullPath);
+          processedPaths.add(processedKey);
 
-          // Check if item name matches query
-          if (item.name.toLowerCase().includes(searchLower)) {
-            if (!results.find((r) => r.path === fullPath)) {
-              results.push({
-                ...item,
-                path: fullPath,
-              });
-            }
-          }
+          // Append "/" so a query like "-bff-" matches "secret/nestor-bff/" at segment boundaries
+          const pathMatches = `${fullPath}/`.toLowerCase().includes(searchLower);
 
           if (item.isFolder) {
-            // Recursively search folders
+            if (pathMatches) {
+              results.push({ ...item, path: fullPath });
+            }
             await searchRecursive(
               currentPath ? `${currentPath}/${item.name}` : item.name,
               depth + 1
             );
           } else {
-            // Search secret content
-            try {
-              const secret = await this.readSecret(fullPath);
-              const secretString = JSON.stringify(secret.data).toLowerCase();
-              if (
-                secretString.includes(searchLower) &&
-                !results.find((r) => r.path === fullPath)
-              ) {
-                results.push({
-                  ...item,
-                  path: fullPath,
-                });
-              }
-            } catch (error) {
-              if (this.debugMode) {
-                logger.error(`Error reading secret ${fullPath}`, error);
+            if (pathMatches) {
+              results.push({ ...item, path: fullPath });
+            } else {
+              // Check key names and values inside the secret
+              try {
+                const secret = await this.readSecret(fullPath);
+                const data = secret.data ?? {};
+                const dataMatch = Object.entries(data).some(
+                  ([k, v]) =>
+                    k.toLowerCase().includes(searchLower) ||
+                    String(v).toLowerCase().includes(searchLower)
+                );
+                if (dataMatch) {
+                  results.push({ ...item, path: fullPath });
+                }
+              } catch {
+                // ignore unreadable secrets
               }
             }
           }
         });
 
-        // Wait for all parallel operations
         await Promise.all(promises);
       } catch (error) {
         if (this.debugMode) {
@@ -543,7 +515,7 @@ export class VaultClient {
     };
 
     await searchRecursive(basePath);
-    return results.slice(0, maxResults); // Ensure we don't exceed maxResults
+    return results;
   }
 
   /**
