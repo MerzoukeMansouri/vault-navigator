@@ -6,6 +6,9 @@ interface TestNode extends TreeNode {
   value?: number;
 }
 
+const ROOT_CHILD1_PATH = "/root/child1";
+const ROOT_CHILD1_GRANDCHILD1_PATH = "/root/child1/grandchild1";
+
 describe("TreeUtils", () => {
   const createSampleTree = (): TestNode[] => [
     {
@@ -14,12 +17,12 @@ describe("TreeUtils", () => {
       value: 1,
       children: [
         {
-          path: "/root/child1",
+          path: ROOT_CHILD1_PATH,
           name: "child1",
           value: 2,
           children: [
             {
-              path: "/root/child1/grandchild1",
+              path: ROOT_CHILD1_GRANDCHILD1_PATH,
               name: "grandchild1",
               value: 3,
             },
@@ -58,7 +61,7 @@ describe("TreeUtils", () => {
 
     test("updates nested node", () => {
       const tree = createSampleTree();
-      const updated = TreeUtils.updateNode(tree, "/root/child1", (node) => ({
+      const updated = TreeUtils.updateNode(tree, ROOT_CHILD1_PATH, (node) => ({
         ...node,
         value: 200,
       }));
@@ -71,7 +74,7 @@ describe("TreeUtils", () => {
       const tree = createSampleTree();
       const updated = TreeUtils.updateNode(
         tree,
-        "/root/child1/grandchild1",
+        ROOT_CHILD1_GRANDCHILD1_PATH,
         (node) => ({
           ...node,
           value: 300,
@@ -128,7 +131,7 @@ describe("TreeUtils", () => {
       const tree = createSampleTree();
       const found = TreeUtils.findNode(tree, (node) => node.name === "child1");
 
-      expect(found?.path).toBe("/root/child1");
+      expect(found?.path).toBe(ROOT_CHILD1_PATH);
     });
 
     test("finds deeply nested node", () => {
@@ -172,7 +175,7 @@ describe("TreeUtils", () => {
   describe("findNodeByPath", () => {
     test("finds node by exact path", () => {
       const tree = createSampleTree();
-      const found = TreeUtils.findNodeByPath(tree, "/root/child1");
+      const found = TreeUtils.findNodeByPath(tree, ROOT_CHILD1_PATH);
 
       expect(found?.name).toBe("child1");
     });
@@ -181,7 +184,7 @@ describe("TreeUtils", () => {
       const tree = createSampleTree();
       const found = TreeUtils.findNodeByPath(
         tree,
-        "/root/child1/grandchild1"
+        ROOT_CHILD1_GRANDCHILD1_PATH
       );
 
       expect(found?.name).toBe("grandchild1");

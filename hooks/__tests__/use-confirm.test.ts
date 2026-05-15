@@ -1,6 +1,11 @@
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useConfirm } from "../use-confirm";
+
+const TEST_TITLE = "Test";
+const TEST_DESC = "Test description";
+const DELETE_ITEM = "Delete Item";
+const ARE_YOU_SURE = "Are you sure?";
 
 describe("useConfirm", () => {
   test("initializes with closed state", () => {
@@ -14,16 +19,16 @@ describe("useConfirm", () => {
 
     act(() => {
       result.current.confirm({
-        title: "Delete Item",
-        description: "Are you sure?",
+        title: DELETE_ITEM,
+        description: ARE_YOU_SURE,
         confirmText: "Delete",
         variant: "destructive",
       });
     });
 
     expect(result.current.confirmState.open).toBe(true);
-    expect(result.current.confirmState.title).toBe("Delete Item");
-    expect(result.current.confirmState.description).toBe("Are you sure?");
+    expect(result.current.confirmState.title).toBe(DELETE_ITEM);
+    expect(result.current.confirmState.description).toBe(ARE_YOU_SURE);
     expect(result.current.confirmState.confirmText).toBe("Delete");
     expect(result.current.confirmState.variant).toBe("destructive");
   });
@@ -36,8 +41,8 @@ describe("useConfirm", () => {
     // Start confirm (don't await yet)
     act(() => {
       result.current.confirm({
-        title: "Test",
-        description: "Test description",
+        title: TEST_TITLE,
+        description: TEST_DESC,
       }).then((value) => {
         confirmResult = value;
       });
@@ -65,8 +70,8 @@ describe("useConfirm", () => {
 
     act(() => {
       result.current.confirm({
-        title: "Test",
-        description: "Test description",
+        title: TEST_TITLE,
+        description: TEST_DESC,
       }).then((value) => {
         confirmResult = value;
       });
@@ -88,8 +93,8 @@ describe("useConfirm", () => {
 
     act(() => {
       result.current.confirm({
-        title: "Test",
-        description: "Test description",
+        title: TEST_TITLE,
+        description: TEST_DESC,
       }).then((value) => {
         confirmResult = value;
       });
@@ -137,7 +142,7 @@ describe("useConfirm", () => {
     act(() => {
       result.current.confirm({
         title: "Logout",
-        description: "Are you sure?",
+        description: ARE_YOU_SURE,
         confirmText: "Yes, logout",
         cancelText: "No, stay",
       });

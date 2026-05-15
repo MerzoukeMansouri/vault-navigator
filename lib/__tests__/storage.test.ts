@@ -2,6 +2,16 @@ import { describe, test, expect, beforeEach, vi } from "vitest";
 import { storage } from "../storage";
 import { SavedConfig } from "../types";
 
+const STORAGE_KEY = "vault-configs";
+const VAULT_EXAMPLE_URL = "https://vault.example.com";
+const TEST_VAULT = "Test Vault";
+const CONFIG_1 = "Config 1";
+const CONFIG_123 = "config-123";
+const NS1 = "ns1";
+const HVS_LEGACY = "hvs.legacy";
+const HVS_1 = "hvs.1";
+const HVS_2 = "hvs.2";
+
 describe("storage", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -18,12 +28,12 @@ describe("storage", () => {
       const mockConfigs: SavedConfig[] = [
         {
           id: "1",
-          name: "Test Vault",
-          url: "https://vault.example.com",
+          name: TEST_VAULT,
+          url: VAULT_EXAMPLE_URL,
           token: "hvs.test123",
         },
       ];
-      localStorage.setItem("vault-configs", JSON.stringify(mockConfigs));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(mockConfigs));
 
       const configs = storage.getConfigs();
       expect(configs).toEqual(mockConfigs);
@@ -34,27 +44,27 @@ describe("storage", () => {
         {
           id: "1",
           name: "Legacy Vault",
-          url: "https://vault.example.com",
-          token: "hvs.legacy",
-          namespaces: ["ns1", "ns2"],
+          url: VAULT_EXAMPLE_URL,
+          token: HVS_LEGACY,
+          namespaces: [NS1, "ns2"],
         },
       ];
-      localStorage.setItem("vault-configs", JSON.stringify(legacyConfigs));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyConfigs));
 
       const configs = storage.getConfigs();
       expect(configs).toEqual([
         {
           id: "1",
           name: "Legacy Vault",
-          url: "https://vault.example.com",
-          token: "hvs.legacy",
-          namespace: "ns1",
+          url: VAULT_EXAMPLE_URL,
+          token: HVS_LEGACY,
+          namespace: NS1,
         },
       ]);
 
       // Verify it saved the migrated config back
-      const saved = JSON.parse(localStorage.getItem("vault-configs")!);
-      expect(saved[0].namespace).toBe("ns1");
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+      expect(saved[0].namespace).toBe(NS1);
       expect(saved[0].namespaces).toBeUndefined();
     });
 
@@ -63,12 +73,12 @@ describe("storage", () => {
         {
           id: "1",
           name: "Legacy Vault",
-          url: "https://vault.example.com",
-          token: "hvs.legacy",
+          url: VAULT_EXAMPLE_URL,
+          token: HVS_LEGACY,
           namespaces: [],
         },
       ];
-      localStorage.setItem("vault-configs", JSON.stringify(legacyConfigs));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyConfigs));
 
       const configs = storage.getConfigs();
       expect(configs[0].namespace).toBeUndefined();
@@ -87,22 +97,22 @@ describe("storage", () => {
           id: "1",
           name: "Legacy",
           url: "https://vault1.com",
-          token: "hvs.1",
-          namespaces: ["ns1"],
+          token: HVS_1,
+          namespaces: [NS1],
         },
         {
           id: "2",
           name: "Modern",
           url: "https://vault2.com",
-          token: "hvs.2",
+          token: HVS_2,
           namespace: "ns2",
         },
       ];
-      localStorage.setItem("vault-configs", JSON.stringify(mixedConfigs));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(mixedConfigs));
 
       const configs = storage.getConfigs();
       expect(configs).toHaveLength(2);
-      expect(configs[0].namespace).toBe("ns1");
+      expect(configs[0].namespace).toBe(NS1);
       expect(configs[1].namespace).toBe("ns2");
     });
   });
@@ -112,7 +122,7 @@ describe("storage", () => {
       const newConfig: SavedConfig = {
         id: "1",
         name: "New Vault",
-        url: "https://vault.example.com",
+        url: VAULT_EXAMPLE_URL,
         token: "hvs.new",
       };
 
@@ -150,13 +160,13 @@ describe("storage", () => {
         id: "1",
         name: "First",
         url: "https://vault1.com",
-        token: "hvs.1",
+        token: HVS_1,
       };
       const config2: SavedConfig = {
         id: "2",
         name: "Second",
         url: "https://vault2.com",
-        token: "hvs.2",
+        token: HVS_2,
       };
       storage.saveConfig(config1);
       storage.saveConfig(config2);
@@ -178,15 +188,15 @@ describe("storage", () => {
     test("deletes config by id", () => {
       const config1: SavedConfig = {
         id: "1",
-        name: "Config 1",
+        name: CONFIG_1,
         url: "https://vault1.com",
-        token: "hvs.1",
+        token: HVS_1,
       };
       const config2: SavedConfig = {
         id: "2",
         name: "Config 2",
         url: "https://vault2.com",
-        token: "hvs.2",
+        token: HVS_2,
       };
       storage.saveConfig(config1);
       storage.saveConfig(config2);
@@ -216,15 +226,15 @@ describe("storage", () => {
     test("preserves active config when deleting different config", () => {
       const config1: SavedConfig = {
         id: "1",
-        name: "Config 1",
+        name: CONFIG_1,
         url: "https://vault1.com",
-        token: "hvs.1",
+        token: HVS_1,
       };
       const config2: SavedConfig = {
         id: "2",
         name: "Config 2",
         url: "https://vault2.com",
-        token: "hvs.2",
+        token: HVS_2,
       };
       storage.saveConfig(config1);
       storage.saveConfig(config2);
@@ -238,9 +248,9 @@ describe("storage", () => {
     test("handles deleting non-existent config", () => {
       const config: SavedConfig = {
         id: "1",
-        name: "Config 1",
+        name: CONFIG_1,
         url: "https://vault.com",
-        token: "hvs.1",
+        token: HVS_1,
       };
       storage.saveConfig(config);
 
@@ -257,8 +267,8 @@ describe("storage", () => {
     });
 
     test("returns active config id", () => {
-      localStorage.setItem("active-vault-config", "config-123");
-      expect(storage.getActiveConfigId()).toBe("config-123");
+      localStorage.setItem("active-vault-config", CONFIG_123);
+      expect(storage.getActiveConfigId()).toBe(CONFIG_123);
     });
   });
 
@@ -269,7 +279,7 @@ describe("storage", () => {
     });
 
     test("clears active config when id is null", () => {
-      storage.setActiveConfig("config-123");
+      storage.setActiveConfig(CONFIG_123);
       storage.setActiveConfig(null);
       expect(storage.getActiveConfigId()).toBeNull();
     });
@@ -280,7 +290,7 @@ describe("storage", () => {
       });
 
       // Should not throw
-      expect(() => storage.setActiveConfig("config-123")).not.toThrow();
+      expect(() => storage.setActiveConfig(CONFIG_123)).not.toThrow();
     });
   });
 
@@ -297,15 +307,15 @@ describe("storage", () => {
     test("returns active config", () => {
       const config1: SavedConfig = {
         id: "1",
-        name: "Config 1",
+        name: CONFIG_1,
         url: "https://vault1.com",
-        token: "hvs.1",
+        token: HVS_1,
       };
       const config2: SavedConfig = {
         id: "2",
         name: "Config 2",
         url: "https://vault2.com",
-        token: "hvs.2",
+        token: HVS_2,
       };
       storage.saveConfig(config1);
       storage.saveConfig(config2);
@@ -318,9 +328,9 @@ describe("storage", () => {
     test("returns null after active config is deleted", () => {
       const config: SavedConfig = {
         id: "1",
-        name: "Config 1",
+        name: CONFIG_1,
         url: "https://vault.com",
-        token: "hvs.1",
+        token: HVS_1,
       };
       storage.saveConfig(config);
       storage.setActiveConfig("1");

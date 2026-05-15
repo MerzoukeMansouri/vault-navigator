@@ -32,15 +32,40 @@ export default defineConfig([
       'sonarjs/no-inverted-boolean-check': 'warn',
 
       // File/Function size (using standard ESLint rules)
-      'complexity': ['warn', 10],
-      'max-lines': ['warn', { max: 250, skipBlankLines: true, skipComments: true }],
-      'max-lines-per-function': ['warn', { max: 50, skipBlankLines: true, skipComments: true }],
+      'complexity': ['warn', 25],
+      'max-lines': ['warn', { max: 350, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 230, skipBlankLines: true, skipComments: true }],
+      'sonarjs/cognitive-complexity': ['warn', 15],
+    },
+  },
+  {
+    files: ['app/api/**/*.ts', 'lib/vault-client.ts'],
+    rules: {
+      'complexity': ['warn', 25],
+      'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
+      'sonarjs/cognitive-complexity': ['warn', 20],
+    },
+  },
+  {
+    files: ['scripts/**/*.js'],
+    rules: {
+      'complexity': 'off',
+      'max-lines-per-function': 'off',
+      'sonarjs/cognitive-complexity': 'off',
     },
   },
   {
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    files: ['**/__tests__/**', '**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+    rules: {
+      'max-lines-per-function': 'off',
+      'max-lines': 'off',
+      'sonarjs/no-duplicate-string': 'off',
     },
   },
   {

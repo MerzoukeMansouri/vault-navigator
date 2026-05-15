@@ -1,6 +1,11 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { VaultCache } from "../vault-cache";
 
+const SECRET_APP1_DB = "secret:app1:db";
+const SECRET_APP1_API = "secret:app1:api";
+const SECRET_APP2_DB = "secret:app2:db";
+const LIST_APP1_DB = "list:app1:db";
+
 describe("VaultCache", () => {
   let cache: VaultCache<string>;
 
@@ -96,29 +101,29 @@ describe("VaultCache", () => {
 
   describe("invalidatePattern", () => {
     test("invalidates by string prefix", () => {
-      cache.set("secret:app1:db", "value1");
-      cache.set("secret:app1:api", "value2");
-      cache.set("secret:app2:db", "value3");
-      cache.set("list:app1:db", "value4");
+      cache.set(SECRET_APP1_DB, "value1");
+      cache.set(SECRET_APP1_API, "value2");
+      cache.set(SECRET_APP2_DB, "value3");
+      cache.set(LIST_APP1_DB, "value4");
 
       cache.invalidatePattern("secret:app1");
 
-      expect(cache.get("secret:app1:db")).toBeNull();
-      expect(cache.get("secret:app1:api")).toBeNull();
-      expect(cache.get("secret:app2:db")).toBe("value3");
-      expect(cache.get("list:app1:db")).toBe("value4");
+      expect(cache.get(SECRET_APP1_DB)).toBeNull();
+      expect(cache.get(SECRET_APP1_API)).toBeNull();
+      expect(cache.get(SECRET_APP2_DB)).toBe("value3");
+      expect(cache.get(LIST_APP1_DB)).toBe("value4");
     });
 
     test("invalidates by regex pattern", () => {
-      cache.set("secret:app1:db", "value1");
-      cache.set("secret:app2:db", "value2");
-      cache.set("list:app1:db", "value3");
+      cache.set(SECRET_APP1_DB, "value1");
+      cache.set(SECRET_APP2_DB, "value2");
+      cache.set(LIST_APP1_DB, "value3");
 
       cache.invalidatePattern(/^secret:.*:db$/);
 
-      expect(cache.get("secret:app1:db")).toBeNull();
-      expect(cache.get("secret:app2:db")).toBeNull();
-      expect(cache.get("list:app1:db")).toBe("value3");
+      expect(cache.get(SECRET_APP1_DB)).toBeNull();
+      expect(cache.get(SECRET_APP2_DB)).toBeNull();
+      expect(cache.get(LIST_APP1_DB)).toBe("value3");
     });
 
     test("handles no matches", () => {

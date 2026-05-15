@@ -294,7 +294,7 @@ export class VaultClient {
         debugMode: this.debugMode,
       });
 
-      const response = await this.client.post(url, { data });
+      await this.client.post(url, { data });
 
       logger.info("Secret written successfully", path);
 
@@ -440,7 +440,6 @@ export class VaultClient {
     query: string,
     basePath: string = VAULT_CONFIG.DEFAULT_MOUNT,
     signal?: AbortSignal,
-    _maxResults: number = 100,
     maxDepth: number = 10
   ): Promise<SecretListItem[]> {
     const results: SecretListItem[] = [];

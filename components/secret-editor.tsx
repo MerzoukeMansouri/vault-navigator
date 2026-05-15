@@ -50,6 +50,31 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
     data2: Record<string, unknown>;
   } | null>(null);
 
+  const handleSwitchToFormMode = React.useCallback(() => {
+    if (editMode === "json") {
+      try {
+        const parsed = JSON.parse(jsonValue);
+        const stringified = Object.entries(parsed).reduce(
+          (acc, [key, value]) => ({
+            ...acc,
+            [key]: typeof value === "string" ? value : JSON.stringify(value),
+          }),
+          {}
+        );
+        setFormData(stringified);
+      } catch {
+        toast.error("Invalid JSON - cannot switch to form mode");
+        return;
+      }
+    }
+    setEditMode("form");
+  }, [editMode, jsonValue, setFormData, setEditMode]);
+
+  const handleSwitchToJsonMode = React.useCallback(() => {
+    setEditMode("json");
+    setJsonValue(JSON.stringify(formData, null, 2));
+  }, [formData, setEditMode, setJsonValue]);
+
   const onSave = async () => {
     try {
       await handleSave();
@@ -184,36 +209,14 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
                 <Button
                   size="sm"
                   variant={editMode === "form" ? "default" : "outline"}
-                  onClick={() => {
-                    if (editMode === "json") {
-                      // When switching from JSON to Form, parse JSON back to formData
-                      try {
-                        const parsed = JSON.parse(jsonValue);
-                        const stringified = Object.entries(parsed).reduce(
-                          (acc, [key, value]) => ({
-                            ...acc,
-                            [key]: typeof value === "string" ? value : JSON.stringify(value),
-                          }),
-                          {}
-                        );
-                        setFormData(stringified);
-                      } catch {
-                        toast.error("Invalid JSON - cannot switch to form mode");
-                        return;
-                      }
-                    }
-                    setEditMode("form");
-                  }}
+                  onClick={handleSwitchToFormMode}
                 >
                   Form
                 </Button>
                 <Button
                   size="sm"
                   variant={editMode === "json" ? "default" : "outline"}
-                  onClick={() => {
-                    setEditMode("json");
-                    setJsonValue(JSON.stringify(formData, null, 2));
-                  }}
+                  onClick={handleSwitchToJsonMode}
                 >
                   JSON
                 </Button>

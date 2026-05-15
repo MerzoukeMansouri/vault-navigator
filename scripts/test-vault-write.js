@@ -14,7 +14,6 @@
 
 const http = require('http');
 const https = require('https');
-const url = require('url');
 
 // Parse command line arguments
 function parseArgs() {
@@ -67,7 +66,7 @@ function vaultRequest(method, vaultUrl, path, token, data = null, namespace = nu
             headers: res.headers,
             data: parsed,
           });
-        } catch (e) {
+        } catch {
           resolve({
             status: res.statusCode,
             headers: res.headers,

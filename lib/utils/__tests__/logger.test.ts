@@ -1,6 +1,9 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { logger } from "../logger";
 
+const WITHOUT_DATA_SUFFIX = "without data";
+const MESSAGE_PREFIX = "Message";
+
 describe("logger", () => {
   let consoleSpy: {
     log: ReturnType<typeof vi.spyOn>;
@@ -56,10 +59,10 @@ describe("logger", () => {
 
     test("handles undefined data parameter", () => {
       logger.setConfig({ enabled: true });
-      logger.debug("Message without data");
+      logger.debug(`${MESSAGE_PREFIX} ${WITHOUT_DATA_SUFFIX}`);
 
       expect(consoleSpy.log).toHaveBeenCalledWith(
-        "[DEBUG] Message without data",
+        `[DEBUG] ${MESSAGE_PREFIX} ${WITHOUT_DATA_SUFFIX}`,
         ""
       );
     });
@@ -97,10 +100,10 @@ describe("logger", () => {
     });
 
     test("handles undefined data parameter", () => {
-      logger.info("Info without data");
+      logger.info(`Info ${WITHOUT_DATA_SUFFIX}`);
 
       expect(consoleSpy.info).toHaveBeenCalledWith(
-        "[INFO] Info without data",
+        `[INFO] Info ${WITHOUT_DATA_SUFFIX}`,
         ""
       );
     });
@@ -128,10 +131,10 @@ describe("logger", () => {
     });
 
     test("handles undefined data parameter", () => {
-      logger.warn("Warning without data");
+      logger.warn(`Warning ${WITHOUT_DATA_SUFFIX}`);
 
       expect(consoleSpy.warn).toHaveBeenCalledWith(
-        "[WARN] Warning without data",
+        `[WARN] Warning ${WITHOUT_DATA_SUFFIX}`,
         ""
       );
     });
