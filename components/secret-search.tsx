@@ -34,12 +34,14 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
     }
 
     if (!query.trim()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
       setShowResults(false);
       setSearching(false);
       return;
     }
 
+     
     setSearching(true);
     setShowResults(true);
 

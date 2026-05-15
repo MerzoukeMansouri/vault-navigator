@@ -72,7 +72,7 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
           data2: data2.data,
         });
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load version data for comparison");
     }
   };

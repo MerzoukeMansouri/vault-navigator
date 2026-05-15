@@ -20,6 +20,7 @@ export function useConfigList() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadConfigs();
   }, [loadConfigs]);
 

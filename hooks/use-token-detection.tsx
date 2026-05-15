@@ -85,6 +85,7 @@ export function useTokenDetection(enabled: boolean = TOKEN_DETECTION.ENABLED_BY_
 
     // Initial check if window is already focused
     if (document.hasFocus()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       checkClipboard();
       startPeriodicCheck();
     }

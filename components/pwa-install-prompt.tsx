@@ -17,7 +17,11 @@ interface BeforeInstallPromptEvent extends Event {
 export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
+
+  const [showPrompt, setShowPrompt] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !window.matchMedia("(display-mode: standalone)").matches;
+  });
 
   useEffect(() => {
     // Check if user previously declined and if TTL has expired
@@ -60,12 +64,6 @@ export function PWAInstallPrompt() {
 
     // Listen for the install prompt event
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    // Check if app is already installed
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      // App is already installed, don't show prompt
-      setShowPrompt(false);
-    }
 
     return () => {
       window.removeEventListener(

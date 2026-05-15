@@ -68,6 +68,18 @@ export function useSecretCreator(options: UseSecretCreatorOptions = {}) {
   }, [formFields]);
 
   /**
+   * Close and reset the creator
+   */
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+    setPath("");
+    setFormFields({});
+    setJsonValue("{}");
+    setJsonError("");
+    setMode("form");
+  }, []);
+
+  /**
    * Create the secret
    */
   const handleCreate = useCallback(async () => {
@@ -109,25 +121,13 @@ export function useSecretCreator(options: UseSecretCreatorOptions = {}) {
     } finally {
       setSaving(false);
     }
-  }, [client, path, mode, jsonValue, formFields, onCreated]);
+  }, [client, path, mode, jsonValue, formFields, onCreated, handleClose]);
 
   /**
    * Open the creator
    */
   const handleOpen = useCallback(() => {
     setIsOpen(true);
-  }, []);
-
-  /**
-   * Close and reset the creator
-   */
-  const handleClose = useCallback(() => {
-    setIsOpen(false);
-    setPath("");
-    setFormFields({});
-    setJsonValue("{}");
-    setJsonError("");
-    setMode("form");
   }, []);
 
   return {

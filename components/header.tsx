@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { LogOut, Lock, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { useVault } from "@/contexts/vault-context";
 import { storage } from "@/lib/storage";
-import { SavedConfig } from "@/lib/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -14,13 +13,10 @@ export function Header() {
     useVault();
   const pathname = usePathname();
   const [showConfigs, setShowConfigs] = useState(false);
-  const [configs, setConfigs] = useState<SavedConfig[]>([]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      setConfigs(storage.getConfigs());
-    }
-  }, [isAuthenticated, activeConfig]);
+  const configs = useMemo(() => {
+    return isAuthenticated ? storage.getConfigs() : [];
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) return null;
 

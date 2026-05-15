@@ -51,7 +51,7 @@ export function VersionSelector({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Current Version */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Current Version</label>
+              <div className="text-sm font-medium">Current Version</div>
               <div className="flex items-center gap-2 p-2 rounded bg-background border">
                 <Hash className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-semibold">{currentVersion}</span>
@@ -68,8 +68,9 @@ export function VersionSelector({
 
             {/* Compare With */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Compare With</label>
+              <label htmlFor="compare-version-select" className="text-sm font-medium">Compare With</label>
               <select
+                id="compare-version-select"
                 value={selectedVersion?.toString() || ""}
                 onChange={(e) =>
                   setSelectedVersion(

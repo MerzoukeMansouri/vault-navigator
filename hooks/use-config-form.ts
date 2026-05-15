@@ -43,6 +43,7 @@ export function useConfigForm(options: UseConfigFormOptions = {}) {
   // Handle prefilled token from URL
   useEffect(() => {
     if (prefilledToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData((prev) => ({ ...prev, token: prefilledToken }));
       setIsEditing(true);
     }

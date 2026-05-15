@@ -78,7 +78,7 @@ export function VaultOIDCLogin({ onLoginStart, onLoginError }: VaultOIDCLoginPro
       <CardHeader>
         <CardTitle>Login with OIDC</CardTitle>
         <CardDescription>
-          Authenticate using your organization's OIDC provider
+          Authenticate using your organization&apos;s OIDC provider
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -167,8 +167,8 @@ export function VaultOIDCLogin({ onLoginStart, onLoginError }: VaultOIDCLoginPro
         </Button>
 
         <div className="text-xs text-gray-500 space-y-1">
-          <p>This will redirect you to your organization's login page.</p>
-          <p>After authentication, you'll be redirected back to this app with a valid token.</p>
+          <p>This will redirect you to your organization&apos;s login page.</p>
+          <p>After authentication, you&apos;ll be redirected back to this app with a valid token.</p>
         </div>
       </CardContent>
     </Card>

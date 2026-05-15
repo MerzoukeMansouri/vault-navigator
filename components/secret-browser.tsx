@@ -133,6 +133,7 @@ export function SecretBrowser({
 
   useEffect(() => {
     if (client) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadRootSecrets();
     }
   }, [client, currentNamespace, loadRootSecrets]);

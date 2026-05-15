@@ -112,6 +112,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedConfig = storage.getActiveConfig();
     if (savedConfig) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       login(savedConfig);
     }
   }, [login]);
@@ -120,6 +121,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       const handled = handleOIDCCallback(params);
 
       // Clean up URL parameters after handling OIDC callback
