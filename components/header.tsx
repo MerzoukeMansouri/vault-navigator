@@ -5,6 +5,7 @@ import { LogOut, Lock, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { useVault } from "@/contexts/vault-context";
 import { storage } from "@/lib/storage";
+import { SavedConfig } from "@/lib/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
