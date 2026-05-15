@@ -13,6 +13,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let parsedVaultUrl: URL;
+    try {
+      parsedVaultUrl = new URL(vaultUrl);
+    } catch {
+      return NextResponse.json(
+        { error: 'Vault URL must be a valid absolute URL' },
+        { status: 400 }
+      );
+    }
+
+    if (parsedVaultUrl.protocol !== 'https:' && parsedVaultUrl.protocol !== 'http:') {
+      return NextResponse.json(
+        { error: 'Vault URL must use http or https' },
+        { status: 400 }
+      );
+    }
+
+    const allowedVaultOrigins = (process.env.VAULT_ALLOWED_URLS || '')
+      .split(',')
+      .map((u) => u.trim())
+      .filter(Boolean);
+
+    const normalizedVaultOrigin = parsedVaultUrl.origin;
+    if (
+      allowedVaultOrigins.length === 0 ||
+      !allowedVaultOrigins.includes(normalizedVaultOrigin)
+    ) {
+      return NextResponse.json(
+        { error: 'Vault URL is not allowed' },
+        { status: 400 }
+      );
+    }
+
     // Construct the redirect URI based on the app URL
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'http://localhost:3000';
     const redirectUri = `${appUrl}/auth/vault/callback`;
@@ -45,8 +78,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Request authorization URL from Vault
+    const vaultAuthUrlEndpoint = new URL('/v1/auth/oidc/oidc/auth_url', normalizedVaultOrigin).toString();
     const response = await fetch(
-      `${vaultUrl}/v1/auth/oidc/oidc/auth_url`,
+      vaultAuthUrlEndpoint,
       {
         method: 'POST',
         headers,
@@ -95,7 +129,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'Vault returned an empty authorization URL. This usually means OIDC is not properly configured for this namespace or the redirect URI is not allowed.',
           details: JSON.stringify(data),
-          vaultUrl,
+          vaultUrl: normalizedVaultOrigin,
           namespace,
           redirectUri,
         },
@@ -106,7 +140,7 @@ export async function POST(request: NextRequest) {
     // Return the authorization URL to the client
     return NextResponse.json({
       authUrl: data.data.auth_url,
-      vaultUrl,
+      vaultUrl: normalizedVaultOrigin,
       namespace: namespace || undefined,
     });
 
