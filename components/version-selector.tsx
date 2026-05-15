@@ -4,7 +4,7 @@ import React from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { ArrowRightLeft, Calendar, Hash } from "lucide-react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 interface VersionSelectorProps {
   versions: Array<{ version: number; created_time: string }>;
@@ -41,7 +41,7 @@ export function VersionSelector({
   const canCompare = selectedVersion && selectedVersion !== currentVersion;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-3"
@@ -53,12 +53,12 @@ export function VersionSelector({
             <div className="space-y-2">
               <div className="text-sm font-medium">Current Version</div>
               <div className="flex items-center gap-2 p-2 rounded bg-background border">
-                <Hash className="h-4 w-4 text-muted-foreground" />
+                <Hash className="size-4 text-muted-foreground" />
                 <span className="text-sm font-semibold">{currentVersion}</span>
               </div>
               {versions.find((v) => v.version === currentVersion) && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
+                  <Calendar className="size-3" />
                   {formatDate(
                     versions.find((v) => v.version === currentVersion)?.created_time || ""
                   )}
@@ -80,13 +80,16 @@ export function VersionSelector({
                 className="w-full px-3 py-2 rounded border bg-background text-sm"
               >
                 <option value="">Select version</option>
-                {versions
-                  .filter((v) => v.version !== currentVersion)
-                  .map((v) => (
-                    <option key={v.version} value={v.version.toString()}>
-                      v{v.version} - {formatDate(v.created_time)}
-                    </option>
-                  ))}
+                {versions.reduce<JSX.Element[]>((acc, v) => {
+                  if (v.version !== currentVersion) {
+                    acc.push(
+                      <option key={v.version} value={v.version.toString()}>
+                        v{v.version} - {formatDate(v.created_time)}
+                      </option>
+                    );
+                  }
+                  return acc;
+                }, [])}
               </select>
             </div>
 
@@ -98,13 +101,13 @@ export function VersionSelector({
                 className="w-full gap-2"
                 size="sm"
               >
-                <ArrowRightLeft className="h-4 w-4" />
+                <ArrowRightLeft className="size-4" />
                 Compare Versions
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   );
 }

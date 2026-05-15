@@ -8,7 +8,7 @@ import { SavedConfig } from "@/lib/types";
 import { storage } from "@/lib/storage";
 import { useVault } from "@/contexts/vault-context";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 interface TokenUpdateDialogProps {
   token: string;
@@ -16,11 +16,11 @@ interface TokenUpdateDialogProps {
 }
 
 export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
-  const [configs] = useState<SavedConfig[]>(storage.getConfigs());
+  const [configs] = useState<SavedConfig[]>(() => storage.getConfigs());
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { activeConfig, login } = useVault();
-  const router = useRouter();
+  const { push } = useRouter();
 
   const handleUpdateConfig = async (config: SavedConfig) => {
     setUpdating(true);
@@ -52,7 +52,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
 
   const handleCreateNewConfig = () => {
     // Navigate to config page with token in URL/state
-    router.push(`/config?token=${encodeURIComponent(token)}`);
+    push(`/config?token=${encodeURIComponent(token)}`);
     onClose();
   };
 
@@ -63,7 +63,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
@@ -72,7 +72,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
           <Card className="w-full max-w-md shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between gap-y-0 pb-4">
               <CardTitle className="flex items-center gap-2">
-                <Key className="h-5 w-5 text-primary" />
+                <Key className="size-5 text-primary" />
                 Vault Token Detected
               </CardTitle>
               <Button
@@ -81,7 +81,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
                 onClick={onClose}
                 disabled={updating}
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -94,7 +94,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
 
               {error && (
                 <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="size-4 text-destructive mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
@@ -126,7 +126,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
                               </p>
                             </div>
                             {activeConfig?.id === config.id && (
-                              <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                              <CheckCircle className="size-4 text-primary flex-shrink-0" />
                             )}
                           </div>
                         </button>
@@ -162,7 +162,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

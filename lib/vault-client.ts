@@ -526,9 +526,12 @@ export class VaultClient {
   async listMounts(): Promise<string[]> {
     try {
       const response = await this.client.get("/v1/sys/mounts");
-      return Object.keys(response.data?.data || response.data || {})
-        .filter((mount) => mount.includes(VAULT_CONFIG.DEFAULT_MOUNT) || mount.includes("kv"))
-        .map((mount) => mount.replace(/\/$/, ""));
+      return Object.keys(response.data?.data || response.data || {}).reduce<string[]>((acc, mount) => {
+        if (mount.includes(VAULT_CONFIG.DEFAULT_MOUNT) || mount.includes("kv")) {
+          acc.push(mount.replace(/\/$/, ""));
+        }
+        return acc;
+      }, []);
     } catch (error) {
       throw this.handleError(error);
     }

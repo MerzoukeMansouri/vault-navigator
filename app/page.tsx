@@ -37,7 +37,7 @@ export default function Home() {
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center space-y-4">
               <div className="mx-auto size-166 rounded-full bg-primary/10 flex items-center justify-center">
-                <Lock className="h-8 w-8 text-primary" />
+                <Lock className="size-8 text-primary" />
               </div>
               <h1 className="text-2xl font-semibold">Welcome to Vault Navigator</h1>
               <p className="text-muted-foreground">

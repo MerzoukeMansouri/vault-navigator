@@ -143,15 +143,20 @@ export function useSecretEditor(path: string, onSaved?: () => void) {
   };
 
   const handleAddField = (key: string) => {
-    if (key && !formData[key]) {
-      setFormData({ ...formData, [key]: "" });
-    }
+    setFormData(prev => {
+      if (key && !prev[key]) {
+        return { ...prev, [key]: "" };
+      }
+      return prev;
+    });
   };
 
   const handleRemoveField = (key: string) => {
-    const newData = { ...formData };
-    delete newData[key];
-    setFormData(newData);
+    setFormData(prev => {
+      const newData = { ...prev };
+      delete newData[key];
+      return newData;
+    });
   };
 
   const handleCopy = async (key: string, value: string) => {

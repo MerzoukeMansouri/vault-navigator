@@ -31,7 +31,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <Lock className="h-6 w-6 text-primary" />
+            <Lock className="size-6 text-primary" />
             <span className="text-xl font-bold">Vault Navigator</span>
           </Link>
 
@@ -75,7 +75,7 @@ export function Header() {
                 className="gap-2"
                 onClick={() => setShowConfigs(!showConfigs)}
               >
-                <Globe className="h-4 w-4" />
+                <Globe className="size-4" />
                 Switch Config
               </Button>
 
@@ -103,7 +103,7 @@ export function Header() {
             </div>
 
             <Button variant="ghost" size="sm" onClick={logout} className="gap-2">
-              <LogOut className="h-4 w-4" />
+              <LogOut className="size-4" />
               Logout
             </Button>
           </div>

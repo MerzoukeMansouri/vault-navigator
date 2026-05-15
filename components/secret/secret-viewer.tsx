@@ -28,7 +28,7 @@ export function SecretViewer({ data, copiedKey, onCopy }: SecretViewerProps) {
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="size-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={() =>
                 onCopy(
                   key,
@@ -38,9 +38,9 @@ export function SecretViewer({ data, copiedKey, onCopy }: SecretViewerProps) {
               aria-label={`Copy ${key}`}
             >
               {copiedKey === key ? (
-                <Check className="h-3 w-3 text-green-500" />
+                <Check className="size-3 text-green-500" />
               ) : (
-                <Copy className="h-3 w-3" />
+                <Copy className="size-3" />
               )}
             </Button>
           </div>

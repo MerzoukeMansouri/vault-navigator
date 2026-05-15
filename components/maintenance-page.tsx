@@ -7,9 +7,9 @@ export function MaintenancePage() {
       <div className="flex min-h-[70vh] items-center justify-center">
         <Card className="w-full max-w-2xl">
           <CardContent className="pt-12 pb-12 text-center space-y-6">
-            <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative">
+            <div className="mx-auto size-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative">
               <Settings className="size-122 text-white animate-spin" style={{ animationDuration: '3s' }} />
-              <Sparkles className="h-6 w-6 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
+              <Sparkles className="size-6 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
             </div>
 
             <div className="space-y-3">

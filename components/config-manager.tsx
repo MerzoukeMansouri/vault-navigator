@@ -73,7 +73,7 @@ export function ConfigManager({ prefilledToken }: ConfigManagerProps) {
         <h2 className="text-3xl font-semibold">Vault Configurations</h2>
         {!isEditing && (
           <Button onClick={() => startEditing()} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Plus className="size-4" />
             Add Configuration
           </Button>
         )}

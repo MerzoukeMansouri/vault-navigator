@@ -57,7 +57,7 @@ export function SecretFormEditor({
             onClick={() => onRemoveField(key)}
             aria-label={`Remove ${key}`}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="size-4" />
           </Button>
         </div>
       ))}
@@ -67,7 +67,7 @@ export function SecretFormEditor({
         onClick={handleAddClick}
         className="gap-2"
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="size-4" />
         Add Field
       </Button>
     </div>

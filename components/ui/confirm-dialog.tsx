@@ -9,7 +9,7 @@ import React from "react";
 import { AlertCircle } from "lucide-react";
 import { Button } from "./button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./card";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -36,7 +36,7 @@ export function ConfirmDialog({
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -46,7 +46,7 @@ export function ConfirmDialog({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   {variant === "destructive" && (
-                    <AlertCircle className="h-5 w-5 text-destructive" />
+                    <AlertCircle className="size-5 text-destructive" />
                   )}
                   {title}
                 </CardTitle>
@@ -66,7 +66,7 @@ export function ConfirmDialog({
                 </Button>
               </CardFooter>
             </Card>
-          </motion.div>
+          </m.div>
         </div>
       )}
     </AnimatePresence>

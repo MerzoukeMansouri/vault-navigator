@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { X } from "lucide-react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 interface VersionDiffViewerProps {
   version1: number;
@@ -105,7 +105,7 @@ export function VersionDiffViewer({
   const hasChanges = diffs.some((d) => d.type !== "unchanged");
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
@@ -120,9 +120,9 @@ export function VersionDiffViewer({
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-8 w-8 p-0"
+            className="size-8 p-0"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </Button>
         </CardHeader>
         <CardContent className="space-y-2 max-h-96 overflow-y-auto">
@@ -137,7 +137,7 @@ export function VersionDiffViewer({
 
                 const colors = getDiffColor(diff.type);
                 return (
-                  <motion.div
+                  <m.div
                     key={diff.key}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -174,13 +174,13 @@ export function VersionDiffViewer({
                         </div>
                       )}
                     </div>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   );
 }

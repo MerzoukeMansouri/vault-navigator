@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Download } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 const STORAGE_KEY = "pwa-install-declined";
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
@@ -116,7 +116,7 @@ export function PWAInstallPrompt() {
   return (
     <AnimatePresence>
       {showPrompt && (
-        <motion.div
+        <m.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
@@ -127,7 +127,7 @@ export function PWAInstallPrompt() {
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 size-100 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Download className="h-5 w-5 text-primary" />
+                  <Download className="size-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm mb-1">
@@ -160,12 +160,12 @@ export function PWAInstallPrompt() {
                   className="flex-shrink-0 p-1 rounded-sm hover:bg-muted transition-colors"
                   aria-label="Close"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="size-4" />
                 </button>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

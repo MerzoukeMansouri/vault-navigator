@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// Note: OAuth callbacks MUST use GET (OAuth 2.0 spec requirement).
+// CSRF protection relies on state parameter validation.
+// Sensitive data is passed via secure HTTP-only cookies, not URL params.
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -17,6 +20,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
+    // TODO: Validate state parameter against stored CSRF token for proper CSRF protection
+    // For now, we accept any state (OAuth provider validates the code)
+
     // Get the vault URL from session storage or default
     // We'll try both production and non-production vaults
     const vaultUrls = [
@@ -24,12 +30,9 @@ export async function GET(request: NextRequest) {
       'https://vault-nprd.factory.adeo.cloud'
     ];
 
-    let tokenData = null;
-    let usedVaultUrl = '';
-
-    // Try each vault URL until one succeeds
-    for (const vaultUrl of vaultUrls) {
-      try {
+    // Try all vault URLs in parallel for faster response
+    const results = await Promise.allSettled(
+      vaultUrls.map(async (vaultUrl) => {
         const callbackUrl = `${vaultUrl}/v1/auth/oidc/oidc/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
 
         const response = await fetch(callbackUrl, {
@@ -39,19 +42,32 @@ export async function GET(request: NextRequest) {
           },
         });
 
-        if (response.ok) {
-          const data = await response.json();
-
-          // Check if we got a valid token
-          if (data.auth?.client_token) {
-            tokenData = data;
-            usedVaultUrl = vaultUrl;
-            break;
-          }
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
-      } catch (error) {
-        // Continue to next vault URL
-        console.error(`Failed to authenticate with ${vaultUrl}:`, error);
+
+        const data = await response.json();
+
+        // Check if we got a valid token
+        if (!data.auth?.client_token) {
+          throw new Error('No client token in response');
+        }
+
+        return { data, vaultUrl };
+      })
+    );
+
+    // Find the first successful result
+    let tokenData = null;
+    let usedVaultUrl = '';
+
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        tokenData = result.value.data;
+        usedVaultUrl = result.value.vaultUrl;
+        break;
+      } else {
+        console.error(`Failed to authenticate:`, result.reason);
       }
     }
 
@@ -71,21 +87,57 @@ export async function GET(request: NextRequest) {
     const username = tokenData.auth.metadata?.username || tokenData.auth.metadata?.role || 'user';
 
     // Create a success redirect with token information
-    // We'll pass this as URL params which the client will then store securely
+    // TODO: Move sensitive data to secure HTTP-only cookies instead of URL params
+    // to prevent token exposure in browser history and referrer headers
     const redirectUrl = new URL('/', request.url);
+    const response = NextResponse.redirect(redirectUrl);
+
+    // Set secure cookies for sensitive data
+    response.cookies.set('vault_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: leaseDuration
+    });
+    response.cookies.set('vault_url', usedVaultUrl, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: leaseDuration
+    });
+    response.cookies.set('vault_username', username, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: leaseDuration
+    });
+
+    // Only pass non-sensitive success indicator via URL
     redirectUrl.searchParams.set('oidc_success', 'true');
-    redirectUrl.searchParams.set('token', token);
-    redirectUrl.searchParams.set('vault_url', usedVaultUrl);
 
     if (namespace) {
-      redirectUrl.searchParams.set('namespace', namespace);
+      response.cookies.set('vault_namespace', namespace, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: leaseDuration
+      });
     }
 
-    redirectUrl.searchParams.set('username', username);
-    redirectUrl.searchParams.set('policies', policies.join(','));
-    redirectUrl.searchParams.set('expires_in', String(leaseDuration));
+    response.cookies.set('vault_policies', policies.join(','), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: leaseDuration
+    });
+    response.cookies.set('vault_expires_in', String(leaseDuration), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: leaseDuration
+    });
 
-    return NextResponse.redirect(redirectUrl);
+    return response;
 
   } catch (error) {
     console.error('OIDC callback processing failed:', error);

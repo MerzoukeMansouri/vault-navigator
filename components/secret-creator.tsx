@@ -44,7 +44,7 @@ export function SecretCreator({ onCreated }: SecretCreatorProps) {
   if (!isOpen) {
     return (
       <Button onClick={handleOpen} className="gap-2">
-        <Plus className="h-4 w-4" />
+        <Plus className="size-4" />
         Create Secret
       </Button>
     );
@@ -114,7 +114,7 @@ export function SecretCreator({ onCreated }: SecretCreatorProps) {
                   variant="ghost"
                   onClick={() => handleRemoveField(key)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="size-4" />
                 </Button>
               </div>
             ))}
@@ -124,7 +124,7 @@ export function SecretCreator({ onCreated }: SecretCreatorProps) {
               onClick={handleAddField}
               className="gap-2"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="size-4" />
               Add Field
             </Button>
           </div>
@@ -151,14 +151,14 @@ export function SecretCreator({ onCreated }: SecretCreatorProps) {
             className="gap-2"
           >
             {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : (
-              <Save className="h-4 w-4" />
+              <Save className="size-4" />
             )}
             Create
           </Button>
           <Button variant="outline" onClick={handleClose} className="gap-2">
-            <X className="h-4 w-4" />
+            <X className="size-4" />
             Cancel
           </Button>
         </div>

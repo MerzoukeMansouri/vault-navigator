@@ -45,7 +45,7 @@ export function ConfigCard({
               }}
               aria-label={`Edit ${config.name}`}
             >
-              <Edit2 className="h-4 w-4" />
+              <Edit2 className="size-4" />
             </Button>
             <Button
               size="icon"
@@ -56,7 +56,7 @@ export function ConfigCard({
               }}
               aria-label={`Delete ${config.name}`}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="size-4" />
             </Button>
           </div>
         </CardTitle>

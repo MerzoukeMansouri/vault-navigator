@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <Card className="w-full max-w-md border-destructive">
             <CardHeader>
               <div className="flex items-center gap-2 text-destructive mb-2">
-                <AlertTriangle className="h-5 w-5" />
+                <AlertTriangle className="size-5" />
                 <CardTitle>Something went wrong</CardTitle>
               </div>
               <CardDescription>
@@ -87,7 +87,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </div>
               <div className="flex gap-2">
                 <Button onClick={this.handleReset} className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
+                  <RefreshCw className="size-4" />
                   Try Again
                 </Button>
                 <Button

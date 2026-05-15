@@ -36,28 +36,34 @@ export function useSecretCreator(options: UseSecretCreatorOptions = {}) {
    * Add a new field to the form
    */
   const handleAddField = useCallback(() => {
-    const key = `field_${Object.keys(formFields).length + 1}`;
-    setFormFields({ ...formFields, [key]: "" });
-  }, [formFields]);
+    setFormFields(prev => {
+      const key = `field_${Object.keys(prev).length + 1}`;
+      return { ...prev, [key]: "" };
+    });
+  }, []);
 
   /**
    * Remove a field from the form
    */
   const handleRemoveField = useCallback((key: string) => {
-    const newFields = { ...formFields };
-    delete newFields[key];
-    setFormFields(newFields);
-  }, [formFields]);
+    setFormFields(prev => {
+      const newFields = { ...prev };
+      delete newFields[key];
+      return newFields;
+    });
+  }, []);
 
   /**
    * Update a field's key or value
    */
   const handleUpdateField = useCallback((oldKey: string, newKey: string, value: string) => {
-    const newFields = { ...formFields };
-    delete newFields[oldKey];
-    newFields[newKey] = value;
-    setFormFields(newFields);
-  }, [formFields]);
+    setFormFields(prev => {
+      const newFields = { ...prev };
+      delete newFields[oldKey];
+      newFields[newKey] = value;
+      return newFields;
+    });
+  }, []);
 
   /**
    * Switch to JSON mode and sync data

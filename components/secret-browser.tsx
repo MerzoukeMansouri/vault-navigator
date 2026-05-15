@@ -10,7 +10,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { useVault } from "@/contexts/vault-context";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { VaultPathUtils } from "@/lib/utils/vault-path-utils";
 import { logger } from "@/lib/utils/logger";
 
@@ -41,7 +41,7 @@ const TreeNodeComponent = memo(({ node, level, selectedPath, onToggle }: TreeNod
 
   return (
     <div>
-      <motion.button
+      <m.button
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent ${
@@ -53,29 +53,29 @@ const TreeNodeComponent = memo(({ node, level, selectedPath, onToggle }: TreeNod
         {node.isFolder && (
           <span className="flex-shrink-0">
             {node.isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : node.isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="size-4" />
             ) : (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="size-4" />
             )}
           </span>
         )}
         {node.isFolder ? (
           node.isExpanded ? (
-            <FolderOpen className="h-4 w-4 text-primary" />
+            <FolderOpen className="size-4 text-primary" />
           ) : (
-            <Folder className="h-4 w-4 text-primary" />
+            <Folder className="size-4 text-primary" />
           )
         ) : (
-          <FileKey className="h-4 w-4 text-muted-foreground" />
+          <FileKey className="size-4 text-muted-foreground" />
         )}
         <span className="truncate">{node.name}</span>
-      </motion.button>
+      </m.button>
 
       <AnimatePresence>
         {node.isExpanded && node.children && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -90,7 +90,7 @@ const TreeNodeComponent = memo(({ node, level, selectedPath, onToggle }: TreeNod
                 onToggle={onToggle}
               />
             ))}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -216,7 +216,7 @@ export function SecretBrowser({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="size-8 animate-spin text-primary" />
       </div>
     );
   }

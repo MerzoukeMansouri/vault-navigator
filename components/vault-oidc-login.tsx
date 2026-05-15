@@ -147,7 +147,7 @@ export function VaultOIDCLogin({ onLoginStart, onLoginError }: VaultOIDCLoginPro
             onChange={(e) => setRole(e.target.value)}
             disabled={loading}
           />
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-zinc-500">
             Leave empty to use the default role configured in Vault
           </p>
         </div>
@@ -166,7 +166,7 @@ export function VaultOIDCLogin({ onLoginStart, onLoginError }: VaultOIDCLoginPro
           {loading ? 'Initiating login...' : 'Login with OIDC'}
         </Button>
 
-        <div className="text-xs text-gray-500 space-y-1">
+        <div className="text-xs text-zinc-500 space-y-1">
           <p>This will redirect you to your organization&apos;s login page.</p>
           <p>After authentication, you&apos;ll be redirected back to this app with a valid token.</p>
         </div>

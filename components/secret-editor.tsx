@@ -10,7 +10,7 @@ import { SecretJsonEditor } from "./secret/secret-json-editor";
 import { VersionSelector } from "./version-selector";
 import { VersionDiffViewer } from "./version-diff-viewer";
 import { useSecretEditor } from "@/hooks/use-secret-editor";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 interface SecretEditorProps {
@@ -105,7 +105,7 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="size-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -120,7 +120,7 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
 
   return (
     <>
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-4"
@@ -137,7 +137,7 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
                     onClick={startEditing}
                     className="gap-2"
                   >
-                    <Edit2 className="h-4 w-4" />
+                    <Edit2 className="size-4" />
                     Edit
                   </Button>
                 ) : (
@@ -149,9 +149,9 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
                       className="gap-2"
                     >
                       {saving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
-                        <Save className="h-4 w-4" />
+                        <Save className="size-4" />
                       )}
                       Save
                     </Button>
@@ -161,7 +161,7 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
                       onClick={cancelEditing}
                       className="gap-2"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="size-4" />
                       Cancel
                     </Button>
                   </>
@@ -247,7 +247,7 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
             )}
           </CardContent>
         </Card>
-      </motion.div>
+      </m.div>
     </>
   );
 }

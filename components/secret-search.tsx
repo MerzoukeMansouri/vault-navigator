@@ -7,7 +7,7 @@ import { Button } from "./ui/button";
 import { useVault } from "@/contexts/vault-context";
 import { SecretListItem } from "@/lib/types";
 import { logger } from "@/lib/utils/logger";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 interface SecretSearchProps {
   onSelectSecret: (path: string) => void;
@@ -102,7 +102,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
     <div className="relative">
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search secrets by name..."
@@ -116,13 +116,13 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
               onClick={handleClear}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </button>
           )}
         </div>
         <Button type="submit" disabled={searching || !query.trim()}>
           {searching ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : (
             "Search"
           )}
@@ -131,7 +131,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
 
       <AnimatePresence>
         {showResults && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -139,7 +139,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
           >
             {searching ? (
               <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <Loader2 className="size-6 animate-spin text-primary" />
               </div>
             ) : results.length > 0 ? (
               <div className="max-h-96 overflow-y-auto space-y-1">
@@ -154,7 +154,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
                     onClick={() => handleSelectResult(result.path)}
                     className="flex w-full items-center gap-2 rounded p-2 text-sm hover:bg-accent transition-colors"
                   >
-                    <FileKey className="h-4 w-4 text-primary flex-shrink-0" />
+                    <FileKey className="size-4 text-primary flex-shrink-0" />
                     <span className="truncate">{result.path}</span>
                   </button>
                 ))}
@@ -164,7 +164,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
                 No results found for &quot;{query}&quot;
               </div>
             )}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

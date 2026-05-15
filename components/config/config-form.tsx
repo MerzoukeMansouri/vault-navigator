@@ -118,9 +118,9 @@ export function ConfigForm({
               }`}
             >
               {connectionStatus.success ? (
-                <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="size-4 mt-0.5 flex-shrink-0" />
               ) : (
-                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="size-4 mt-0.5 flex-shrink-0" />
               )}
               <p className="text-sm">{connectionStatus.message}</p>
             </div>
@@ -135,14 +135,14 @@ export function ConfigForm({
               className="gap-2"
             >
               {testingConnection ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
               ) : (
-                <CheckCircle className="h-4 w-4" />
+                <CheckCircle className="size-4" />
               )}
               Test Connection
             </Button>
             <Button type="submit" className="gap-2">
-              <Check className="h-4 w-4" />
+              <Check className="size-4" />
               Save
             </Button>
             <Button
@@ -151,7 +151,7 @@ export function ConfigForm({
               onClick={onCancel}
               className="gap-2"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               Cancel
             </Button>
           </div>

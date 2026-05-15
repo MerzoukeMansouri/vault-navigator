@@ -6,6 +6,7 @@ import { Header } from "@/components/header";
 import { TokenDetectionProvider } from "@/components/token-detection-provider";
 import { Toaster } from "sonner";
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
+import { MotionProvider } from "@/components/motion-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,16 +49,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <VaultProvider>
-          <TokenDetectionProvider>
-            <div className="min-h-screen bg-background">
-              <Header />
-              {children}
-            </div>
-            <Toaster richColors position="top-right" />
-            <PWAInstallPrompt />
-          </TokenDetectionProvider>
-        </VaultProvider>
+        <MotionProvider>
+          <VaultProvider>
+            <TokenDetectionProvider>
+              <div className="min-h-screen bg-background">
+                <Header />
+                {children}
+              </div>
+              <Toaster richColors position="top-right" />
+              <PWAInstallPrompt />
+            </TokenDetectionProvider>
+          </VaultProvider>
+        </MotionProvider>
       </body>
     </html>
   );
