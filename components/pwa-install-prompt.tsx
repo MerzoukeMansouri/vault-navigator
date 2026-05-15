@@ -126,7 +126,7 @@ export function PWAInstallPrompt() {
           <Card className="shadow-lg border-2">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="flex-shrink-0 size-100 rounded-full bg-primary/10 flex items-center justify-center">
                   <Download className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">

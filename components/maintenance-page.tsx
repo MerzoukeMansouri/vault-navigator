@@ -8,7 +8,7 @@ export function MaintenancePage() {
         <Card className="w-full max-w-2xl">
           <CardContent className="pt-12 pb-12 text-center space-y-6">
             <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative">
-              <Settings className="h-12 w-12 text-white animate-spin" style={{ animationDuration: '3s' }} />
+              <Settings className="size-122 text-white animate-spin" style={{ animationDuration: '3s' }} />
               <Sparkles className="h-6 w-6 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
             </div>
 
