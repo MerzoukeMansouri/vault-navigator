@@ -35,32 +35,29 @@ export function Header() {
             <span className="text-xl font-bold">Vault Navigator</span>
           </Link>
 
-          {isAuthenticated && (
-            <nav className="flex gap-4">
-              <Link
-                href="/"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === "/" ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                Browser
-              </Link>
-              <Link
-                href="/config"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === "/config"
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
-                Configurations
-              </Link>
-            </nav>
-          )}
+          <nav className="flex gap-4">
+            <Link
+              href="/"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                pathname === "/" ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Browser
+            </Link>
+            <Link
+              href="/config"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                pathname === "/config"
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Configurations
+            </Link>
+          </nav>
         </div>
 
-        {isAuthenticated && (
-          <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Connected to:</span>
               <span className="font-medium">{activeConfig?.name}</span>
@@ -110,7 +107,6 @@ export function Header() {
               Logout
             </Button>
           </div>
-        )}
       </div>
     </header>
   );

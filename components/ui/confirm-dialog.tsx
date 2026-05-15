@@ -32,8 +32,6 @@ export function ConfirmDialog({
   cancelText = "Cancel",
   variant = "default",
 }: ConfirmDialogProps) {
-  if (!open) return null;
-
   return (
     <AnimatePresence>
       {open && (

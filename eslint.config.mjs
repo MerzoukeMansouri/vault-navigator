@@ -35,7 +35,6 @@ export default defineConfig([
       'complexity': ['warn', 25],
       'max-lines': ['warn', { max: 350, skipBlankLines: true, skipComments: true }],
       'max-lines-per-function': ['warn', { max: 230, skipBlankLines: true, skipComments: true }],
-      'sonarjs/cognitive-complexity': ['warn', 15],
     },
   },
   {
