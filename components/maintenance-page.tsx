@@ -13,7 +13,7 @@ export function MaintenancePage() {
             </div>
 
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Maintenance en cours
               </h1>
               <p className="text-xl text-muted-foreground">
@@ -32,9 +32,9 @@ export function MaintenancePage() {
             </div>
 
             <div className="flex justify-center gap-2 pt-6">
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0s' }}></div>
-              <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 rounded-full bg-pink-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              <div className="size-2 rounded-full bg-blue-500 animate-fade-scale" style={{ animationDelay: '0s' }}></div>
+              <div className="size-2 rounded-full bg-purple-500 animate-fade-scale" style={{ animationDelay: '0.2s' }}></div>
+              <div className="size-2 rounded-full bg-pink-500 animate-fade-scale" style={{ animationDelay: '0.4s' }}></div>
             </div>
           </CardContent>
         </Card>

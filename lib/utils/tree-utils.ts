@@ -126,15 +126,19 @@ export class TreeUtils {
     nodes: T[],
     predicate: (node: T) => boolean
   ): T[] {
-    return nodes.filter(predicate).map((node) => {
-      if (node.children) {
-        return {
-          ...node,
-          children: this.filterNodes(node.children as T[], predicate),
-        } as T;
+    return nodes.reduce<T[]>((acc, node) => {
+      if (predicate(node)) {
+        if (node.children) {
+          acc.push({
+            ...node,
+            children: this.filterNodes(node.children as T[], predicate),
+          } as T);
+        } else {
+          acc.push(node);
+        }
       }
-      return node;
-    });
+      return acc;
+    }, []);
   }
 
   /**

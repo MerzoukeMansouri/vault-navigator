@@ -39,7 +39,7 @@ export default function Home() {
               <div className="mx-auto size-166 rounded-full bg-primary/10 flex items-center justify-center">
                 <Lock className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold">Welcome to Vault Navigator</h1>
+              <h1 className="text-2xl font-semibold">Welcome to Vault Navigator</h1>
               <p className="text-muted-foreground">
                 Connect to your HashiCorp Vault instance to get started
               </p>
@@ -54,7 +54,7 @@ export default function Home() {
   }
 
   return (
-    <main className="container mx-auto px-6 py-6">
+    <main className="container mx-auto p-6">
       <ErrorBoundary>
         <div className="mb-6 flex gap-4 items-start">
           <div className="flex-1">

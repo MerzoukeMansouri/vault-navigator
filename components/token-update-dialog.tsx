@@ -70,7 +70,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
           transition={{ duration: 0.2 }}
         >
           <Card className="w-full max-w-md shadow-xl">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardHeader className="flex flex-row items-center justify-between gap-y-0 pb-4">
               <CardTitle className="flex items-center gap-2">
                 <Key className="h-5 w-5 text-primary" />
                 Vault Token Detected

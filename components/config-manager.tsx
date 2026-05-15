@@ -70,7 +70,7 @@ export function ConfigManager({ prefilledToken }: ConfigManagerProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Vault Configurations</h2>
+        <h2 className="text-3xl font-semibold">Vault Configurations</h2>
         {!isEditing && (
           <Button onClick={() => startEditing()} className="gap-2">
             <Plus className="h-4 w-4" />

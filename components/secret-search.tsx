@@ -152,7 +152,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
                   <button
                     key={`${result.path}${result.isFolder ? "/" : ""}`}
                     onClick={() => handleSelectResult(result.path)}
-                    className="flex w-full items-center gap-2 rounded px-2 py-2 text-sm hover:bg-accent transition-colors"
+                    className="flex w-full items-center gap-2 rounded p-2 text-sm hover:bg-accent transition-colors"
                   >
                     <FileKey className="h-4 w-4 text-primary flex-shrink-0" />
                     <span className="truncate">{result.path}</span>
