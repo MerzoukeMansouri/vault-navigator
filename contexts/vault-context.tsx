@@ -4,7 +4,6 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { VaultClient } from "@/lib/vault-client";
 import { SavedConfig } from "@/lib/types";
 import { storage } from "@/lib/storage";
-import { logger } from "@/lib/utils/logger";
 
 interface VaultContextType {
   client: VaultClient | null;
@@ -15,7 +14,6 @@ interface VaultContextType {
   logout: () => void;
   switchNamespace: (namespace: string | null) => void;
   refreshConfig: () => void;
-  handleOIDCCallback: (params: URLSearchParams) => boolean;
 }
 
 const VaultContext = createContext<VaultContextType | undefined>(undefined);
@@ -62,53 +60,6 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const handleOIDCCallback = useCallback((params: URLSearchParams): boolean => {
-    const oidcSuccess = params.get('oidc_success');
-    const token = params.get('token');
-    const vaultUrl = params.get('vault_url');
-    const namespace = params.get('namespace');
-    const username = params.get('username');
-    const policies = params.get('policies');
-    const expiresIn = params.get('expires_in');
-
-    if (oidcSuccess === 'true' && token && vaultUrl) {
-      logger.info('OIDC callback received, creating config');
-
-      // Create a config from OIDC authentication
-      const config: SavedConfig = {
-        id: Date.now().toString(),
-        name: `OIDC: ${username || 'User'}${namespace ? ` (${namespace})` : ''}`,
-        url: vaultUrl,
-        token: token,
-        namespace: namespace || undefined,
-      };
-
-      // Save the config
-      storage.saveConfig(config);
-
-      // Log in with the new config
-      login(config);
-
-      logger.info('OIDC login successful', {
-        namespace,
-        policies,
-        expiresIn: expiresIn ? `${expiresIn}s` : 'unknown',
-      });
-
-      return true;
-    }
-
-    // Check for OIDC errors
-    const error = params.get('error');
-    const message = params.get('message');
-    if (error) {
-      logger.error('OIDC authentication failed', { error, message });
-      return false;
-    }
-
-    return false;
-  }, [login]);
-
   useEffect(() => {
     const savedConfig = storage.getActiveConfig();
     if (savedConfig) {
@@ -116,21 +67,6 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       login(savedConfig);
     }
   }, [login]);
-
-  // Handle OIDC callback on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      const handled = handleOIDCCallback(params);
-
-      // Clean up URL parameters after handling OIDC callback
-      if (handled || params.has('oidc_success') || params.has('error')) {
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, '', cleanUrl);
-      }
-    }
-  }, [handleOIDCCallback]);
 
   return (
     <VaultContext.Provider
@@ -143,7 +79,6 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
         logout,
         switchNamespace,
         refreshConfig,
-        handleOIDCCallback,
       }}
     >
       {children}

@@ -18,12 +18,11 @@ export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
 
-  const [showPrompt, setShowPrompt] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return !window.matchMedia("(display-mode: standalone)").matches;
-  });
+  const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
+    if (window.matchMedia("(display-mode: standalone)").matches) return;
+
     // Check if user previously declined and if TTL has expired
     const checkInstallPromptStatus = () => {
       const declinedData = localStorage.getItem(STORAGE_KEY);
@@ -126,7 +125,7 @@ export function PWAInstallPrompt() {
           <Card className="shadow-lg border-2">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 size-100 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="flex-shrink-0 size-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Download className="size-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">

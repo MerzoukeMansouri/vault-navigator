@@ -12,6 +12,12 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
+const PRESETS: Record<string, { url: string; namespace: string }> = {
+  none: { url: "", namespace: "" },
+  workspace: { url: "http://vault.factory.adeo.cloud", namespace: "adeo/solution-offer-design" },
+  "workspace-nprd": { url: "http://vault-nprd.factory.adeo.cloud", namespace: "adeo/solution-offer-design" },
+};
+
 interface ConfigFormData {
   name: string;
   url: string;
@@ -45,6 +51,13 @@ export function ConfigForm({
   connectionStatus,
   isEditing,
 }: ConfigFormProps) {
+  const handlePreset = (value: string) => {
+    const preset = PRESETS[value];
+    if (preset && value !== "none") {
+      onFormDataChange({ ...formData, url: preset.url, namespace: preset.namespace });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -54,6 +67,20 @@ export function ConfigForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={onSave} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="preset">Workspace preset</Label>
+            <select
+              id="preset"
+              defaultValue="none"
+              onChange={(e) => handlePreset(e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="none">None</option>
+              <option value="workspace">Workspace — production</option>
+              <option value="workspace-nprd">Workspace — non-prod</option>
+            </select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="name">Configuration Name</Label>
             <Input

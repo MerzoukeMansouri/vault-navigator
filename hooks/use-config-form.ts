@@ -22,11 +22,13 @@ interface ConnectionStatus {
 
 interface UseConfigFormOptions {
   prefilledToken?: string;
+  prefilledUrl?: string;
+  prefilledNamespace?: string;
   onSaveSuccess?: () => void;
 }
 
 export function useConfigForm(options: UseConfigFormOptions = {}) {
-  const { prefilledToken, onSaveSuccess } = options;
+  const { prefilledToken, prefilledUrl, prefilledNamespace, onSaveSuccess } = options;
 
   const [formData, setFormData] = useState<ConfigFormData>({
     name: "",
@@ -40,14 +42,17 @@ export function useConfigForm(options: UseConfigFormOptions = {}) {
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
 
-  // Handle prefilled token from URL
   useEffect(() => {
-    if (prefilledToken) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData((prev) => ({ ...prev, token: prefilledToken }));
+    if (prefilledToken || prefilledUrl || prefilledNamespace) {
+      setFormData((prev) => ({
+        ...prev,
+        token: prefilledToken ?? prev.token,
+        url: prefilledUrl ?? prev.url,
+        namespace: prefilledNamespace ?? prev.namespace,
+      }));
       setIsEditing(true);
     }
-  }, [prefilledToken]);
+  }, [prefilledToken, prefilledUrl, prefilledNamespace]);
 
   const resetForm = () => {
     setFormData({ name: "", url: "", token: "", namespace: "" });

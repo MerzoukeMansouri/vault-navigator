@@ -6,13 +6,19 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 function ConfigPageContent() {
-  const { get } = useSearchParams();
-  const prefilledToken = get("token");
+  const searchParams = useSearchParams();
+  const prefilledToken = searchParams.get("token");
+  const prefilledUrl = searchParams.get("url");
+  const prefilledNamespace = searchParams.get("namespace");
 
   return (
     <main className="container mx-auto px-6 py-8">
       <ErrorBoundary>
-        <ConfigManager prefilledToken={prefilledToken || undefined} />
+        <ConfigManager
+          prefilledToken={prefilledToken || undefined}
+          prefilledUrl={prefilledUrl || undefined}
+          prefilledNamespace={prefilledNamespace || undefined}
+        />
       </ErrorBoundary>
     </main>
   );
