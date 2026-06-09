@@ -102,7 +102,7 @@ importers:
         specifier: ^20.10.2
         version: 20.10.2
       postcss:
-        specifier: ^8.5.15
+        specifier: '>=8.5.10'
         version: 8.5.15
       sharp:
         specifier: ^0.34.5
@@ -114,7 +114,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
       vite:
-        specifier: ^8.0.16
+        specifier: '>=7.3.2'
         version: 8.0.16(@types/node@25.9.2)(jiti@2.7.0)(terser@5.48.0)
       vitest:
         specifier: ^4.1.8
