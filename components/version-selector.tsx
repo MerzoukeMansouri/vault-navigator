@@ -80,7 +80,7 @@ export function VersionSelector({
                 className="w-full px-3 py-2 rounded border bg-background text-sm"
               >
                 <option value="">Select version</option>
-                {versions.reduce<JSX.Element[]>((acc, v) => {
+                {versions.reduce<React.ReactElement[]>((acc, v) => {
                   if (v.version !== currentVersion) {
                     acc.push(
                       <option key={v.version} value={v.version.toString()}>
