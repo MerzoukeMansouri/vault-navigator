@@ -13,6 +13,44 @@ import { useSecretEditor } from "@/hooks/use-secret-editor";
 import { m, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
+interface SecretContentProps {
+  isEditing: boolean;
+  editMode: "form" | "json";
+  formData: Record<string, string>;
+  jsonValue: string;
+  jsonError: string;
+  secretData: Record<string, unknown>;
+  copiedKey: string | null;
+  onFormDataChange: (data: Record<string, string>) => void;
+  onAddField: (key: string) => void;
+  onRemoveField: (key: string) => void;
+  onJsonChange: (value: string) => void;
+  onCopy: (key: string, value: string) => void;
+}
+
+function SecretContent({ isEditing, editMode, formData, jsonValue, jsonError, secretData, copiedKey, onFormDataChange, onAddField, onRemoveField, onJsonChange, onCopy }: SecretContentProps) {
+  if (isEditing && editMode === "form") {
+    return (
+      <SecretFormEditor
+        formData={formData}
+        onFormDataChange={onFormDataChange}
+        onAddField={onAddField}
+        onRemoveField={onRemoveField}
+      />
+    );
+  }
+  if (isEditing && editMode === "json") {
+    return (
+      <SecretJsonEditor
+        value={jsonValue}
+        error={jsonError}
+        onChange={onJsonChange}
+      />
+    );
+  }
+  return <SecretViewer data={secretData} copiedKey={copiedKey} onCopy={onCopy} />;
+}
+
 interface SecretEditorProps {
   path: string;
   onSaved?: () => void;
@@ -223,28 +261,20 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
               </div>
             )}
 
-            {isEditing && editMode === "form" ? (
-              <SecretFormEditor
-                formData={formData}
-                onFormDataChange={setFormData}
-                onAddField={handleAddField}
-                onRemoveField={handleRemoveField}
-              />
-            ) : isEditing && editMode === "json" ? (
-              <SecretJsonEditor
-                value={jsonValue}
-                error={jsonError}
-                onChange={(value) => {
-                  setJsonValue(value);
-                }}
-              />
-            ) : (
-              <SecretViewer
-                data={secret.data}
-                copiedKey={copiedKey}
-                onCopy={handleCopy}
-              />
-            )}
+            <SecretContent
+              isEditing={isEditing}
+              editMode={editMode}
+              formData={formData}
+              jsonValue={jsonValue}
+              jsonError={jsonError}
+              secretData={secret.data}
+              copiedKey={copiedKey}
+              onFormDataChange={setFormData}
+              onAddField={handleAddField}
+              onRemoveField={handleRemoveField}
+              onJsonChange={setJsonValue}
+              onCopy={handleCopy}
+            />
           </CardContent>
         </Card>
       </m.div>

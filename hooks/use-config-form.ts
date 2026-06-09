@@ -44,6 +44,7 @@ export function useConfigForm(options: UseConfigFormOptions = {}) {
 
   useEffect(() => {
     if (prefilledToken || prefilledUrl || prefilledNamespace) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData((prev) => ({
         ...prev,
         token: prefilledToken ?? prev.token,

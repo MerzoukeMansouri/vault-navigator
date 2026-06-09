@@ -33,6 +33,7 @@ function AliasInfo() {
   const [ns, setNs] = useState("");
   const [addr, setAddr] = useState("");
   const [origin, setOrigin] = useState("");
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setOrigin(window.location.origin); }, []);
   const alias = buildAlias(ns, addr, origin);
 
