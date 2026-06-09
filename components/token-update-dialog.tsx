@@ -43,13 +43,13 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
   return (
     <AnimatePresence>
       <m.div
-        className="fixed bottom-4 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 px-4"
+        className="fixed bottom-4 left-1/2 z-[9999] w-full max-w-lg -translate-x-1/2 px-4"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 24 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
       >
-        <div className="bg-card text-card-foreground border rounded-xl shadow-2xl px-4 py-3 flex items-center gap-3">
+        <div className="bg-card text-card-foreground border rounded-xl shadow-2xl px-4 py-3 flex items-center gap-3" style={{ backgroundColor: "hsl(var(--color-card))", color: "hsl(var(--color-card-foreground))" }}>
           <Key className="size-4 text-primary shrink-0" />
 
           <div className="flex-1 min-w-0">

@@ -19,8 +19,6 @@ export function Header() {
     return isAuthenticated ? storage.getConfigs() : [];
   }, [isAuthenticated]);
 
-  if (!isAuthenticated) return null;
-
   const handleConfigSwitch = (config: SavedConfig) => {
     login(config);
     setShowConfigs(false);
@@ -57,7 +55,8 @@ export function Header() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
+        {isAuthenticated && (
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Connected to:</span>
               <span className="font-medium">{activeConfig?.name}</span>
@@ -107,6 +106,7 @@ export function Header() {
               Logout
             </Button>
           </div>
+        )}
       </div>
     </header>
   );
