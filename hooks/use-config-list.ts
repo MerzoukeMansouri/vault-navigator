@@ -11,7 +11,7 @@ import { logger } from "@/lib/utils/logger";
 
 export function useConfigList() {
   const [configs, setConfigs] = useState<SavedConfig[]>([]);
-  const { login, activeConfig, refreshConfig } = useVault();
+  const { login, activeConfig } = useVault();
 
   const loadConfigs = useCallback(() => {
     const loadedConfigs = storage.getConfigs();
@@ -28,13 +28,13 @@ export function useConfigList() {
     try {
       storage.saveConfig(config);
       loadConfigs();
-      refreshConfig();
+      login(config);
       logger.info("Config saved", config.id);
     } catch (error) {
       logger.error("Failed to save config", error);
       throw error;
     }
-  }, [loadConfigs, refreshConfig]);
+  }, [loadConfigs, login]);
 
   const deleteConfig = useCallback((id: string) => {
     try {
