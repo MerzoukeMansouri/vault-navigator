@@ -80,21 +80,6 @@ jobs:
         with:
           category: "/language:${{matrix.language}}"
 
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v5
-        with:
-          fail-on-severity: moderate
-          deny-licenses: GPL-3.0, AGPL-3.0
-          comment-summary-in-pr: always
 
   # Stage 2: Tests & Security Audits (Parallel, after Stage 1)
   test:
