@@ -12,6 +12,7 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MaintenancePage } from "@/components/maintenance-page";
+import { EnvLegend } from "@/components/env-legend";
 
 export default function Home() {
   // React hooks must be called before any conditional returns
@@ -77,6 +78,9 @@ export default function Home() {
                     onSelectSecret={setSelectedPath}
                     selectedPath={selectedPath || undefined}
                   />
+                </div>
+                <div className="p-3 border-t shrink-0">
+                  <EnvLegend />
                 </div>
               </div>
             </Card>

@@ -10,6 +10,7 @@ import { SecretJsonEditor } from "./secret/secret-json-editor";
 import { VersionSelector } from "./version-selector";
 import { VersionDiffViewer } from "./version-diff-viewer";
 import { useSecretEditor } from "@/hooks/use-secret-editor";
+import { detectEnvColor } from "@/lib/utils/env-utils";
 import { m, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ interface SecretContentProps {
   jsonError: string;
   secretData: Record<string, unknown>;
   copiedKey: string | null;
+  envColor?: string;
   onFormDataChange: (data: Record<string, string>) => void;
   onAddField: (key: string) => void;
   onRemoveField: (key: string) => void;
@@ -28,7 +30,7 @@ interface SecretContentProps {
   onCopy: (key: string, value: string) => void;
 }
 
-function SecretContent({ isEditing, editMode, formData, jsonValue, jsonError, secretData, copiedKey, onFormDataChange, onAddField, onRemoveField, onJsonChange, onCopy }: SecretContentProps) {
+function SecretContent({ isEditing, editMode, formData, jsonValue, jsonError, secretData, copiedKey, envColor, onFormDataChange, onAddField, onRemoveField, onJsonChange, onCopy }: SecretContentProps) {
   if (isEditing && editMode === "form") {
     return (
       <SecretFormEditor
@@ -48,7 +50,7 @@ function SecretContent({ isEditing, editMode, formData, jsonValue, jsonError, se
       />
     );
   }
-  return <SecretViewer data={secretData} copiedKey={copiedKey} onCopy={onCopy} />;
+  return <SecretViewer data={secretData} copiedKey={copiedKey} onCopy={onCopy} envColor={envColor} />;
 }
 
 interface SecretEditorProps {
@@ -57,6 +59,7 @@ interface SecretEditorProps {
 }
 
 export function SecretEditor({ path, onSaved }: SecretEditorProps) {
+  const envColor = detectEnvColor(path) ?? undefined;
   const {
     secret,
     loading,
@@ -269,6 +272,7 @@ export function SecretEditor({ path, onSaved }: SecretEditorProps) {
               jsonError={jsonError}
               secretData={secret.data}
               copiedKey={copiedKey}
+              envColor={envColor}
               onFormDataChange={setFormData}
               onAddField={handleAddField}
               onRemoveField={handleRemoveField}

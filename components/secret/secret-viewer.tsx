@@ -5,7 +5,6 @@
 
 "use client";
 
-import React from "react";
 import { Copy, Check } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -13,15 +12,17 @@ interface SecretViewerProps {
   data: Record<string, unknown>;
   copiedKey: string | null;
   onCopy: (key: string, value: string) => void;
+  envColor?: string;
 }
 
-export function SecretViewer({ data, copiedKey, onCopy }: SecretViewerProps) {
+export function SecretViewer({ data, copiedKey, onCopy, envColor }: SecretViewerProps) {
   return (
     <div className="space-y-2">
       {Object.entries(data).map(([key, value]) => (
         <div
           key={key}
           className="group rounded-md border p-3 hover:bg-accent/50 transition-colors"
+          style={envColor ? { borderLeftColor: envColor, borderLeftWidth: "2px" } : undefined}
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-semibold">{key}</span>

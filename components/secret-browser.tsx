@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import {
   Folder,
   FileKey,
@@ -8,11 +8,17 @@ import {
   ChevronDown,
   Loader2,
   FolderOpen,
+  Star,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useVault } from "@/contexts/vault-context";
 import { m, AnimatePresence } from "framer-motion";
 import { VaultPathUtils } from "@/lib/utils/vault-path-utils";
 import { logger } from "@/lib/utils/logger";
+import { detectEnvColor } from "@/lib/utils/env-utils";
+
+const FAVORITES_KEY = "vault-navigator-favorites";
 
 interface SecretBrowserProps {
   onSelectSecret: (path: string) => void;
@@ -28,50 +34,160 @@ interface TreeNode {
   isLoading?: boolean;
 }
 
+type FavoriteItem = { path: string; name: string; isFolder: boolean };
+
 interface TreeNodeComponentProps {
   node: TreeNode;
   level: number;
   selectedPath?: string;
+  favorites: Map<string, FavoriteItem>;
   onToggle: (node: TreeNode) => void;
+  onToggleFavorite: (node: TreeNode) => void;
 }
 
-// Memoized TreeNode component to prevent unnecessary re-renders
-const TreeNodeComponent = memo(({ node, level, selectedPath, onToggle }: TreeNodeComponentProps) => {
+function CopyButton({ path }: { path: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(path);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted"
+      title="Copy path"
+    >
+      {copied ? (
+        <Check className="size-3.5 text-green-500" />
+      ) : (
+        <Copy className="size-3.5 text-muted-foreground" />
+      )}
+    </button>
+  );
+}
+
+function PinnedItemRow({
+  item,
+  selectedPath,
+  onSelect,
+  onUnpin,
+}: {
+  item: FavoriteItem;
+  selectedPath?: string;
+  onSelect: (path: string) => void;
+  onUnpin: (path: string) => void;
+}) {
+  const isSelected = selectedPath === item.path;
+  const envColor = detectEnvColor(item.name) ?? (item.isFolder ? "#f59e0b" : "#38bdf8");
+
+  return (
+    <div className="group relative">
+      <button
+        onClick={() => onSelect(item.path)}
+        className={`flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-accent ${
+          isSelected ? "bg-accent font-medium" : ""
+        }`}
+      >
+        {item.isFolder ? (
+          <Folder className="size-4 shrink-0" style={{ color: envColor }} />
+        ) : (
+          <FileKey className="size-4 shrink-0" style={{ color: envColor }} />
+        )}
+        <span className="truncate pr-14 text-muted-foreground">{item.name}</span>
+      </button>
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+        <CopyButton path={item.path} />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onUnpin(item.path);
+          }}
+          className="rounded p-1 hover:bg-muted"
+          title="Unpin"
+        >
+          <Star className="size-3.5 fill-amber-400 text-amber-400" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const TreeNodeComponent = memo(({
+  node,
+  level,
+  selectedPath,
+  favorites,
+  onToggle,
+  onToggleFavorite,
+}: TreeNodeComponentProps) => {
   const isSelected = selectedPath === node.path;
+  const isFavorite = favorites.has(node.path);
+  const envColor = detectEnvColor(node.name) ?? (node.isFolder ? "#f59e0b" : "#38bdf8");
+
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleFavorite(node);
+  };
 
   return (
     <div>
-      <m.button
+      <m.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
-        className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent ${
-          isSelected ? "bg-accent font-medium" : ""
-        }`}
-        style={{ paddingLeft: `${level * 1.5 + 0.75}rem` }}
-        onClick={() => onToggle(node)}
+        className="group relative"
       >
-        {node.isFolder && (
-          <span className="flex-shrink-0">
-            {node.isLoading ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : node.isExpanded ? (
-              <ChevronDown className="size-4" />
+        <button
+          className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent ${
+            isSelected ? "bg-accent font-medium" : ""
+          }`}
+          style={{ paddingLeft: `${level * 1.5 + 0.75}rem` }}
+          onClick={() => onToggle(node)}
+        >
+          {node.isFolder && (
+            <span className="flex-shrink-0">
+              {node.isLoading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : node.isExpanded ? (
+                <ChevronDown className="size-4" />
+              ) : (
+                <ChevronRight className="size-4" />
+              )}
+            </span>
+          )}
+          {node.isFolder ? (
+            node.isExpanded ? (
+              <FolderOpen className="size-4 shrink-0" style={{ color: envColor }} />
             ) : (
-              <ChevronRight className="size-4" />
-            )}
-          </span>
-        )}
-        {node.isFolder ? (
-          node.isExpanded ? (
-            <FolderOpen className="size-4 text-foreground" />
+              <Folder className="size-4 shrink-0" style={{ color: envColor }} />
+            )
           ) : (
-            <Folder className="size-4 text-foreground" />
-          )
-        ) : (
-          <FileKey className="size-4 text-muted-foreground" />
-        )}
-        <span className="truncate">{node.name}</span>
-      </m.button>
+            <FileKey className="size-4 shrink-0" style={{ color: envColor }} />
+          )}
+          <span className="truncate pr-14">{node.name}</span>
+        </button>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+          <CopyButton path={node.path} />
+          <button
+            onClick={handleFavorite}
+            className={`rounded p-1 transition-opacity hover:bg-muted ${
+              isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+            title={isFavorite ? "Unpin" : "Pin"}
+          >
+            <Star
+              className={`size-3.5 ${
+                isFavorite
+                  ? "fill-amber-400 text-amber-400"
+                  : "text-muted-foreground"
+              }`}
+            />
+          </button>
+        </div>
+      </m.div>
 
       <AnimatePresence>
         {node.isExpanded && node.children && (
@@ -87,7 +203,9 @@ const TreeNodeComponent = memo(({ node, level, selectedPath, onToggle }: TreeNod
                 node={child}
                 level={level + 1}
                 selectedPath={selectedPath}
+                favorites={favorites}
                 onToggle={onToggle}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </m.div>
@@ -107,6 +225,41 @@ export function SecretBrowser({
   const [tree, setTree] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<Map<string, FavoriteItem>>(new Map());
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(FAVORITES_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (stored) setFavorites(new Map(JSON.parse(stored)));
+    } catch {}
+  }, []);
+
+  const toggleFavorite = useCallback((node: TreeNode) => {
+    setFavorites((prev) => {
+      const next = new Map(prev);
+      if (next.has(node.path)) {
+        next.delete(node.path);
+      } else {
+        next.set(node.path, { path: node.path, name: node.name, isFolder: node.isFolder });
+      }
+      try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  const removeFavorite = useCallback((path: string) => {
+    setFavorites((prev) => {
+      const next = new Map(prev);
+      next.delete(path);
+      try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+  }, []);
 
   const loadRootSecrets = useCallback(async () => {
     if (!client) return;
@@ -213,6 +366,8 @@ export function SecretBrowser({
     }
   }, [onSelectSecret, loadChildren]);
 
+  const favoritesArray = useMemo(() => [...favorites.values()], [favorites]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -242,6 +397,23 @@ export function SecretBrowser({
 
   return (
     <div className="space-y-1">
+      {favoritesArray.length > 0 && (
+        <div className="mb-2">
+          <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Pinned
+          </p>
+          {favoritesArray.map((item) => (
+            <PinnedItemRow
+              key={item.path}
+              item={item}
+              selectedPath={selectedPath}
+              onSelect={onSelectSecret}
+              onUnpin={removeFavorite}
+            />
+          ))}
+          <div className="mx-3 my-2 border-t border-border" />
+        </div>
+      )}
       {tree.length === 0 ? (
         <div className="p-4 text-center text-sm text-muted-foreground">
           No secrets found. Make sure the &quot;secret&quot; KV engine is mounted.
@@ -253,7 +425,9 @@ export function SecretBrowser({
             node={node}
             level={0}
             selectedPath={selectedPath}
+            favorites={favorites}
             onToggle={toggleNode}
+            onToggleFavorite={toggleFavorite}
           />
         ))
       )}
