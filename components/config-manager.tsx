@@ -50,9 +50,10 @@ export function ConfigManager({ prefilledToken, prefilledUrl, prefilledNamespace
   useEffect(() => {
     if (!loaded || !prefilledToken || !prefilledUrl) return;
 
+    const host = (u: string) => { try { return new URL(u).hostname; } catch { return u; } };
     const match = configs.find(
       (c) =>
-        c.url === prefilledUrl &&
+        host(c.url) === host(prefilledUrl) &&
         (c.namespace ?? "") === (prefilledNamespace ?? "")
     );
 
