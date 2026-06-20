@@ -11,6 +11,11 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ConfigSwitcher } from "./config-switcher";
 
+const NAV_LINK_BASE = "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors";
+const MOBILE_LINK_BASE = "flex items-center gap-2 rounded px-3 py-2 text-sm transition-colors";
+const ACTIVE_CLS = "bg-accent text-accent-foreground";
+const INACTIVE_MOBILE_CLS = "hover:bg-accent";
+
 function NavLink({
   href,
   icon: Icon,
@@ -26,10 +31,8 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-        active
-          ? "bg-accent text-accent-foreground"
-          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+        NAV_LINK_BASE,
+        active ? ACTIVE_CLS : "text-muted-foreground hover:bg-accent hover:text-foreground"
       )}
     >
       <Icon className="size-4 shrink-0" />
@@ -153,34 +156,13 @@ export function MobileHeader() {
           <div className="absolute right-0 mt-1 w-44 rounded-md border p-1 shadow-md z-50"
             style={{ backgroundColor: "hsl(var(--color-popover))" }}
           >
-            <Link
-              href="/"
-              onClick={() => setOpen(false)}
-              className={cn(
-                "flex items-center gap-2 rounded px-3 py-2 text-sm transition-colors",
-                pathname === "/" ? "bg-accent text-accent-foreground" : "hover:bg-accent"
-              )}
-            >
+            <Link href="/" onClick={() => setOpen(false)} className={cn(MOBILE_LINK_BASE, pathname === "/" ? ACTIVE_CLS : INACTIVE_MOBILE_CLS)}>
               <Key className="size-4" /> Secrets
             </Link>
-            <Link
-              href="/config"
-              onClick={() => setOpen(false)}
-              className={cn(
-                "flex items-center gap-2 rounded px-3 py-2 text-sm transition-colors",
-                pathname === "/config" ? "bg-accent text-accent-foreground" : "hover:bg-accent"
-              )}
-            >
+            <Link href="/config" onClick={() => setOpen(false)} className={cn(MOBILE_LINK_BASE, pathname === "/config" ? ACTIVE_CLS : INACTIVE_MOBILE_CLS)}>
               <Settings2 className="size-4" /> Configurations
             </Link>
-            <Link
-              href="/tips"
-              onClick={() => setOpen(false)}
-              className={cn(
-                "flex items-center gap-2 rounded px-3 py-2 text-sm transition-colors",
-                pathname === "/tips" ? "bg-accent text-accent-foreground" : "hover:bg-accent"
-              )}
-            >
+            <Link href="/tips" onClick={() => setOpen(false)} className={cn(MOBILE_LINK_BASE, pathname === "/tips" ? ACTIVE_CLS : INACTIVE_MOBILE_CLS)}>
               <Lightbulb className="size-4" /> Tips
             </Link>
           </div>
