@@ -7,8 +7,8 @@
  * Vault-specific configuration constants
  */
 export const VAULT_CONFIG = {
-  /** Prefix used by Vault tokens (e.g., "hvs.XXXXXX") */
-  TOKEN_PREFIX: "hvs.",
+  /** Prefixes used by Vault tokens — "hvs." (new) or "s." (legacy) */
+  TOKEN_PREFIXES: ["hvs.", "s."],
   /** Cache time-to-live values in milliseconds */
   CACHE_TTL: {
     /** How long to cache list results (5 minutes) */
@@ -40,7 +40,12 @@ export const STORAGE_KEYS = {
   CONFIGS: "vault-configs",
   /** Key for storing the currently active configuration ID */
   ACTIVE_CONFIG: "active-vault-config",
+  /** Key for tracking which release-notes version has been dismissed */
+  RELEASE_NOTES_READ: "vault-navigator:release-notes-read",
 } as const;
+
+/** Bump this when new release notes should be shown again */
+export const RELEASE_NOTES_VERSION = "2026-06";
 
 /**
  * UI timing and interaction constants

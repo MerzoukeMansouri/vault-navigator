@@ -63,9 +63,9 @@ const TreeNodeComponent = memo(({ node, level, selectedPath, onToggle }: TreeNod
         )}
         {node.isFolder ? (
           node.isExpanded ? (
-            <FolderOpen className="size-4 text-primary" />
+            <FolderOpen className="size-4 text-foreground" />
           ) : (
-            <Folder className="size-4 text-primary" />
+            <Folder className="size-4 text-foreground" />
           )
         ) : (
           <FileKey className="size-4 text-muted-foreground" />
@@ -216,7 +216,7 @@ export function SecretBrowser({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -232,7 +232,7 @@ export function SecretBrowser({
         </div>
         <button
           onClick={loadRootSecrets}
-          className="text-xs text-primary hover:underline"
+          className="text-xs underline underline-offset-2 text-foreground"
         >
           Try again
         </button>

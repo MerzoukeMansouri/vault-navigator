@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Copy, Check, Terminal } from "lucide-react";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
-import { Card, CardContent } from "./ui/card";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import { ConfirmDialog } from "./ui/confirm-dialog";
 import { ConfigForm } from "./config/config-form";
 import { ConfigCard } from "./config/config-card";
 import { useConfigForm } from "@/hooks/use-config-form";
 import { useConfigList } from "@/hooks/use-config-list";
 import { useConfirm } from "@/hooks/use-confirm";
+import { SavedConfig } from "@/lib/types";
 
 interface ConfigManagerProps {
   prefilledToken?: string;
@@ -17,69 +19,21 @@ interface ConfigManagerProps {
   prefilledNamespace?: string;
 }
 
-function buildAlias(ns: string, addr: string, origin: string) {
-  return `vault-me() {
-  local ns="\${1:-${ns}}"
-  local addr="${addr}"
-  vault login -method=oidc -namespace="$ns" -address="$addr" && \\
-  [[ -f ~/.vault-token ]] && pbcopy < ~/.vault-token && \\
-  echo "VAULT_TOKEN=$(<~/.vault-token)" > ~/.env-spring && \\
-  open "${origin}/config?token=$(cat ~/.vault-token)&url=$addr&namespace=$ns"
-}`;
-}
-
-function AliasInfo() {
-  const [copied, setCopied] = useState(false);
-  const [ns, setNs] = useState("");
-  const [addr, setAddr] = useState("");
-  const [origin, setOrigin] = useState("");
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setOrigin(window.location.origin); }, []);
-  const alias = buildAlias(ns, addr, origin);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(alias);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <Card className="border-dashed">
-      <CardContent className="pt-4 pb-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <Terminal className="size-4" />
-            Add to <code className="bg-muted px-1 py-0.5 rounded text-xs">~/.zshrc</code> for one-command login
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-1.5 h-7 text-xs">
-            {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-            {copied ? "Copied" : "Copy"}
-          </Button>
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={addr}
-            onChange={(e) => setAddr(e.target.value)}
-            placeholder="Vault address"
-            className="flex-1 h-8 rounded-md border border-input bg-background px-3 text-xs font-mono"
-          />
-          <input
-            value={ns}
-            onChange={(e) => setNs(e.target.value)}
-            placeholder="Namespace"
-            className="flex-1 h-8 rounded-md border border-input bg-background px-3 text-xs font-mono"
-          />
-        </div>
-        <pre className="bg-muted rounded-md p-3 text-xs overflow-x-auto leading-relaxed">{alias}</pre>
-      </CardContent>
-    </Card>
-  );
-}
 
 export function ConfigManager({ prefilledToken, prefilledUrl, prefilledNamespace }: ConfigManagerProps) {
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const {
+    configs,
+    loaded,
+    saveConfig,
+    deleteConfig,
+    selectConfig,
+    isActiveConfig,
+  } = useConfigList();
+
   const {
     formData,
-    isEditing,
     testingConnection,
     connectionStatus,
     setFormData,
@@ -93,25 +47,43 @@ export function ConfigManager({ prefilledToken, prefilledUrl, prefilledNamespace
     prefilledNamespace,
   });
 
-  const {
-    configs,
-    saveConfig,
-    deleteConfig,
-    selectConfig,
-    isActiveConfig,
-  } = useConfigList();
+  useEffect(() => {
+    if (!loaded || !prefilledToken || !prefilledUrl) return;
+
+    const match = configs.find(
+      (c) =>
+        c.url === prefilledUrl &&
+        (c.namespace ?? "") === (prefilledNamespace ?? "")
+    );
+
+    if (match) {
+      const updated = { ...match, token: prefilledToken };
+      saveConfig(updated);
+      toast.success(`Config "${match.name}" up to date`);
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSheetOpen(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, prefilledToken, prefilledUrl, prefilledNamespace]);
 
   const { confirm, confirmState, handleClose } = useConfirm();
 
-  // Handlers
-  const onSave = (e: React.FormEvent) => {
+  const openSheet = (config?: SavedConfig) => {
+    startEditing(config);
+    setSheetOpen(true);
+  };
+
+  const closeSheet = () => {
+    setSheetOpen(false);
+    cancelEditing();
+  };
+
+  const onSave = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const config = handleSave();
     saveConfig(config);
-  };
-
-  const onEdit = (config: Parameters<typeof startEditing>[0]) => {
-    startEditing(config);
+    setSheetOpen(false);
   };
 
   const onDelete = async (id: string) => {
@@ -122,59 +94,71 @@ export function ConfigManager({ prefilledToken, prefilledUrl, prefilledNamespace
       cancelText: "Cancel",
       variant: "destructive",
     });
-
-    if (confirmed) {
-      deleteConfig(id);
-    }
+    if (confirmed) deleteConfig(id);
   };
 
   return (
     <div className="space-y-6">
-      <AliasInfo />
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-semibold">Vault Configurations</h2>
-        {!isEditing && (
-          <Button onClick={() => startEditing()} className="gap-2">
-            <Plus className="size-4" />
-            Add Configuration
-          </Button>
-        )}
+        <h2 className="text-3xl font-heading">Vault Configurations</h2>
+        <Button onClick={() => openSheet()} className="gap-2">
+          <Plus className="size-4" />
+          Add Configuration
+        </Button>
       </div>
 
-      {isEditing && (
-        <ConfigForm
-          formData={formData}
-          onFormDataChange={setFormData}
-          onSave={onSave}
-          onCancel={cancelEditing}
-          onTestConnection={testConnection}
-          testingConnection={testingConnection}
-          connectionStatus={connectionStatus}
-          isEditing={!!formData.name}
-        />
+      <Sheet open={sheetOpen} onOpenChange={(open) => { if (!open) closeSheet(); }}>
+        <SheetContent side="right" showCloseButton={false}>
+          <SheetHeader className="border-b pb-4">
+            <SheetTitle>{formData.name ? "Edit Configuration" : "Add Configuration"}</SheetTitle>
+          </SheetHeader>
+          <ConfigForm
+            formData={formData}
+            onFormDataChange={setFormData}
+            onSave={onSave}
+            onCancel={closeSheet}
+            onTestConnection={testConnection}
+            testingConnection={testingConnection}
+            connectionStatus={connectionStatus}
+            isEditing={!!formData.name}
+          />
+        </SheetContent>
+      </Sheet>
+
+      {configs.length > 0 && (
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b bg-muted/40">
+                <th className="py-2.5 px-4 w-8"></th>
+                <th className="py-2.5 px-4 text-xs font-medium text-muted-foreground">Name</th>
+                <th className="py-2.5 px-4 text-xs font-medium text-muted-foreground">URL</th>
+                <th className="py-2.5 px-4 text-xs font-medium text-muted-foreground">Namespace</th>
+                <th className="py-2.5 px-4 text-xs font-medium text-muted-foreground text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {configs.map((config) => (
+                <ConfigCard
+                  key={config.id}
+                  config={config}
+                  isActive={isActiveConfig(config.id)}
+                  onSelect={selectConfig}
+                  onEdit={openSheet}
+                  onDelete={onDelete}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {configs.map((config) => (
-          <ConfigCard
-            key={config.id}
-            config={config}
-            isActive={isActiveConfig(config.id)}
-            onSelect={selectConfig}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
-
-      {configs.length === 0 && !isEditing && (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              No configurations yet. Add one to get started!
-            </p>
-          </CardContent>
-        </Card>
+      {configs.length === 0 && (
+        <div className="border rounded-lg py-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            No configurations yet. Add one to get started.
+          </p>
+        </div>
       )}
 
       <ConfirmDialog

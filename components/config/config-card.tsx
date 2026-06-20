@@ -1,15 +1,9 @@
-/**
- * Configuration card component
- * Displays a single configuration with edit/delete actions
- */
-
 "use client";
 
-import React from "react";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, PlugZap } from "lucide-react";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { SavedConfig } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface ConfigCardProps {
   config: SavedConfig;
@@ -27,61 +21,61 @@ export function ConfigCard({
   onDelete,
 }: ConfigCardProps) {
   return (
-    <Card
-      className={`cursor-pointer transition-all hover:shadow-lg ${
-        isActive ? "ring-2 ring-primary" : ""
-      }`}
+    <tr
+      onClick={() => onSelect(config)}
+      className={cn(
+        "cursor-pointer border-b transition-colors last:border-0",
+        isActive ? "bg-secondary hover:bg-secondary/80" : "hover:bg-accent"
+      )}
     >
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span className="truncate">{config.name}</span>
-          <div className="flex gap-1">
+      <td className="py-3 px-4 w-8 text-center text-sm">
+        {isActive ? "✅" : ""}
+      </td>
+      <td className="py-3 px-4">
+        <span className="text-sm font-medium">{config.name}</span>
+      </td>
+      <td className="py-3 px-4 text-sm text-muted-foreground truncate max-w-xs">
+        {config.url}
+      </td>
+      <td className="py-3 px-4 text-sm text-muted-foreground">
+        {config.namespace || "Root"}
+      </td>
+      <td className="py-3 px-4 text-right">
+        <div className="flex items-center justify-end gap-1">
+          {!isActive && (
             <Button
               size="icon"
               variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(config);
-              }}
-              aria-label={`Edit ${config.name}`}
+              className="size-7"
+              onClick={(e) => { e.stopPropagation(); onSelect(config); }}
+              aria-label={`Connect to ${config.name}`}
+              title="Connect"
             >
-              <Edit2 className="size-4" />
+              <PlugZap className="size-3.5" />
             </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(config.id);
-              }}
-              aria-label={`Delete ${config.name}`}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent onClick={() => onSelect(config)}>
-        <div className="space-y-2 text-sm">
-          <div>
-            <span className="font-semibold">URL:</span>{" "}
-            <span className="text-muted-foreground truncate block">
-              {config.url}
-            </span>
-          </div>
-          <div>
-            <span className="font-semibold">Namespace:</span>{" "}
-            <span className="text-muted-foreground">
-              {config.namespace || "Root"}
-            </span>
-          </div>
+          )}
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-7"
+            onClick={(e) => { e.stopPropagation(); onEdit(config); }}
+            aria-label={`Edit ${config.name}`}
+            title="Edit"
+          >
+            <Edit2 className="size-3.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-7"
+            onClick={(e) => { e.stopPropagation(); onDelete(config.id); }}
+            aria-label={`Delete ${config.name}`}
+            title="Delete"
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
         </div>
-        {isActive && (
-          <div className="mt-3 text-xs font-semibold text-primary">
-            Active
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      </td>
+    </tr>
   );
 }

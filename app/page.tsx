@@ -36,10 +36,10 @@ export default function Home() {
         <div className="flex min-h-[60vh] items-center justify-center">
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 text-center space-y-4">
-              <div className="mx-auto size-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Lock className="size-8 text-primary" />
+              <div className="mx-auto size-16 rounded-full bg-muted flex items-center justify-center">
+                <Lock className="size-8 text-foreground" />
               </div>
-              <h1 className="text-2xl font-semibold">Welcome to Vault Navigator</h1>
+              <h1 className="text-2xl font-heading">Welcome to Vault Navigator</h1>
               <p className="text-muted-foreground">
                 Connect to your HashiCorp Vault instance to get started
               </p>
@@ -67,10 +67,10 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <ErrorBoundary>
           <div className="lg:col-span-1">
-            <Card className="h-[calc(100vh-12rem)] overflow-hidden">
+            <Card className="h-[calc(100vh-5rem)] overflow-hidden">
               <div className="h-full flex flex-col">
                 <div className="p-4 border-b">
-                  <h2 className="font-semibold">Secrets</h2>
+                  <h2 className="font-heading">Secrets</h2>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4">
                   <SecretBrowser
@@ -91,7 +91,7 @@ export default function Home() {
                 path={selectedPath}
               />
             ) : (
-              <Card className="h-[calc(100vh-12rem)]">
+              <Card className="h-[calc(100vh-5rem)]">
                 <CardContent className="flex items-center justify-center h-full">
                   <p className="text-muted-foreground">
                     Select a secret from the browser to view and edit

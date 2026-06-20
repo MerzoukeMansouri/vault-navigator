@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { VAULT_CONFIG, TOKEN_DETECTION } from "@/lib/constants";
+import { storage } from "@/lib/storage";
 import { logger } from "@/lib/utils/logger";
 
 export interface DetectedToken {
@@ -17,6 +18,9 @@ export function useTokenDetection(enabled: boolean = TOKEN_DETECTION.ENABLED_BY_
   const checkClipboard = useCallback(async () => {
     if (!enabled) return;
 
+    // Skip if the URL already carries a token query param (e.g. shared config link)
+    if (new URLSearchParams(window.location.search).has("token")) return;
+
     try {
       // Check if Clipboard API is available
       if (!navigator.clipboard || !navigator.clipboard.readText) {
@@ -27,12 +31,15 @@ export function useTokenDetection(enabled: boolean = TOKEN_DETECTION.ENABLED_BY_
       const text = await navigator.clipboard.readText();
 
       // Check if it's a Vault token and we haven't seen it before
+      const trimmed = text.trim();
+      const alreadySaved = storage.getConfigs().some((c) => c.token === trimmed);
       if (
-        text &&
-        text.trim().startsWith(VAULT_CONFIG.TOKEN_PREFIX) &&
-        text.trim() !== lastCheckedTokenRef.current
+        trimmed &&
+        VAULT_CONFIG.TOKEN_PREFIXES.some((prefix) => trimmed.startsWith(prefix)) &&
+        trimmed !== lastCheckedTokenRef.current &&
+        !alreadySaved
       ) {
-        const token = text.trim();
+        const token = trimmed;
         lastCheckedTokenRef.current = token;
 
         setDetectedToken({

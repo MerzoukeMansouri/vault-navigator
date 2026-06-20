@@ -11,11 +11,13 @@ import { logger } from "@/lib/utils/logger";
 
 export function useConfigList() {
   const [configs, setConfigs] = useState<SavedConfig[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const { login, activeConfig } = useVault();
 
   const loadConfigs = useCallback(() => {
     const loadedConfigs = storage.getConfigs();
     setConfigs(loadedConfigs);
+    setLoaded(true);
     logger.debug("Loaded configs", { count: loadedConfigs.length });
   }, []);
 
@@ -58,6 +60,7 @@ export function useConfigList() {
 
   return {
     configs,
+    loaded,
     activeConfig,
     loadConfigs,
     saveConfig,

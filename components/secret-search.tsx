@@ -139,7 +139,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
           >
             {searching ? (
               <div className="flex items-center justify-center p-4">
-                <Loader2 className="size-6 animate-spin text-primary" />
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
               </div>
             ) : results.length > 0 ? (
               <div className="max-h-96 overflow-y-auto space-y-1">
@@ -154,7 +154,7 @@ export function SecretSearch({ onSelectSecret }: SecretSearchProps) {
                     onClick={() => handleSelectResult(result.path)}
                     className="flex w-full items-center gap-2 rounded p-2 text-sm hover:bg-accent transition-colors"
                   >
-                    <FileKey className="size-4 text-primary flex-shrink-0" />
+                    <FileKey className="size-4 text-muted-foreground flex-shrink-0" />
                     <span className="truncate">{result.path}</span>
                   </button>
                 ))}

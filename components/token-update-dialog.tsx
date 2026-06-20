@@ -49,7 +49,7 @@ export function TokenUpdateDialog({ token, onClose }: TokenUpdateDialogProps) {
         exit={{ opacity: 0, y: 24 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
       >
-        <div className="bg-card text-card-foreground border rounded-xl shadow-2xl px-4 py-3 flex items-center gap-3" style={{ backgroundColor: "hsl(var(--color-card))", color: "hsl(var(--color-card-foreground))" }}>
+        <div className="bg-card text-card-foreground border rounded-xl shadow-2xl px-4 py-3 flex items-center gap-3">
           <Key className="size-4 text-primary shrink-0" />
 
           <div className="flex-1 min-w-0">
