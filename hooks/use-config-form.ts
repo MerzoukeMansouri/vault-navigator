@@ -95,6 +95,7 @@ export function useConfigForm(options: UseConfigFormOptions = {}) {
       const testClient = new VaultClient({
         url: formData.url,
         token: formData.token,
+        namespace: formData.namespace.trim() || undefined,
       });
 
       const result = await testClient.testConnection();

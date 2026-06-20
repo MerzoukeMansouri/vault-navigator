@@ -144,7 +144,8 @@ export class VaultClient {
    */
   async testConnection(): Promise<{ success: boolean; error?: string }> {
     try {
-      await this.client.get("/v1/sys/health");
+      // lookup-self validates the token AND the namespace (requires auth, unlike /sys/health)
+      await this.client.get("/v1/auth/token/lookup-self");
       return { success: true };
     } catch (error) {
       const vaultError = this.handleError(error);

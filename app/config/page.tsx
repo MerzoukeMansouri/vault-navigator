@@ -2,14 +2,22 @@
 
 import { ConfigManager } from "@/components/config-manager";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
 function ConfigPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const prefilledToken = searchParams.get("token");
   const prefilledUrl = searchParams.get("url");
   const prefilledNamespace = searchParams.get("namespace");
+
+  useEffect(() => {
+    if (prefilledToken || prefilledUrl || prefilledNamespace) {
+      router.replace("/config");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="container mx-auto px-6 py-8">
