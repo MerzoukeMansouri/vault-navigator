@@ -13,6 +13,7 @@ import { useConfigList } from "@/hooks/use-config-list";
 import { useConfirm } from "@/hooks/use-confirm";
 import { SavedConfig } from "@/lib/types";
 import confetti from "canvas-confetti";
+import { MatrixRain } from "./matrix-rain";
 
 interface ConfigManagerProps {
   prefilledToken?: string;
@@ -62,11 +63,14 @@ export function ConfigManager({ prefilledToken, prefilledUrl, prefilledNamespace
       const updated = { ...match, token: prefilledToken };
       saveConfig(updated);
       toast.custom(() => (
-        <div className="flex items-start gap-3 rounded-md border border-emerald-500/30 bg-black/90 px-4 py-3 font-mono text-sm shadow-lg shadow-emerald-900/20 backdrop-blur">
-          <span className="mt-px text-emerald-400 select-none">▶</span>
-          <div className="space-y-0.5">
-            <p className="text-emerald-400 font-semibold tracking-wide">TOKEN ROTATED</p>
-            <p className="text-emerald-600 text-xs">{match.name} — credentials synchronized</p>
+        <div className="relative overflow-hidden rounded-md border border-emerald-500/30 shadow-lg shadow-emerald-900/20 w-[360px]">
+          <MatrixRain className="absolute inset-0 w-full h-full opacity-30" />
+          <div className="relative z-10 flex items-start gap-3 bg-black/75 px-4 py-3 font-mono text-sm">
+            <span className="mt-px text-emerald-400 select-none">▶</span>
+            <div className="space-y-0.5">
+              <p className="text-emerald-300 font-semibold tracking-wide">TOKEN ROTATED</p>
+              <p className="text-emerald-600 text-xs">{match.name} — credentials synchronized</p>
+            </div>
           </div>
         </div>
       ), { duration: 4000 });
