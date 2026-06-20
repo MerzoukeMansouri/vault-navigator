@@ -16,7 +16,7 @@ A modern, production-ready UI for HashiCorp Vault built with Next.js 14, TypeScr
   - Automatic token detection from clipboard
 - 🎯 **Automatic Token Detection**: Intelligently detects Vault tokens from clipboard and offers quick configuration updates
 - 📁 **Namespace Management**: Seamless switching between multiple namespaces with OIDC integration
-- 🌳 **Secret Browser**: Interactive tree-view navigation with folder expansion and lazy loading
+- 🌳 **Secret Browser**: Interactive tree-view navigation with folder expansion, lazy loading, favorites/pins, and one-click path copy
 - ✏️ **Secret Editor**: Full CRUD operations (Create, Read, Update, Delete) for secrets
 - 🔍 **Advanced Search**: Powerful search across all secrets by name or content with result highlighting
 - ⚙️ **Multi-Configuration**: Save and manage multiple Vault connections with connection testing
@@ -28,10 +28,12 @@ A modern, production-ready UI for HashiCorp Vault built with Next.js 14, TypeScr
 - ✨ **Smooth Animations**: Delightful transitions powered by Framer Motion
 - 📱 **Responsive Layout**: Works flawlessly on desktop, tablet, and mobile
 - ⚡ **Real-time Updates**: Instant visual feedback for all operations
-- 📋 **Copy to Clipboard**: One-click copy for any secret value with visual confirmation
+- 📋 **Copy to Clipboard**: One-click copy for any secret value or path with visual confirmation
 - 🔄 **Dual Edit Modes**: Edit secrets using intuitive forms or raw JSON
 - 🎭 **Custom Dialogs**: Beautiful confirmation dialogs replace browser alerts
 - 🔔 **Smart Notifications**: Professional error and success messages
+- 🌈 **Environment Color Coding**: Icons and secret cards are color-coded by environment (`dev` green, `sit` blue, `qa/uat` purple, `pre` orange, `prod` red) with a legend in the sidebar
+- ⭐ **Favorites / Pins**: Pin any secret or folder for quick access from the top of the tree, persisted across sessions
 
 ### Developer Experience
 - 🏗️ **Clean Architecture**: SOLID principles, DRY, and separation of concerns
@@ -44,7 +46,7 @@ A modern, production-ready UI for HashiCorp Vault built with Next.js 14, TypeScr
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** 18+ (recommended: use `fnm` or `nvm`)
+- **Node.js** 24+ — exact version pinned in `.node-version` (auto-picked by `fnm`; `nvm` users run `nvm install` manually)
 - **pnpm** 8+ (or npm 9+)
 - **HashiCorp Vault** instance (local or remote)
 - **Vault Token** with appropriate KV v2 permissions
@@ -117,7 +119,9 @@ Comprehensive guides and references for Vault Navigator:
 - **Expand Folders**: Click on folder icons to expand and navigate
 - **View Secrets**: Click on secret names to view contents
 - **Search**: Use the search bar to find secrets by name or content
-- **Navigate**: Use breadcrumbs or tree navigation
+- **Copy Path**: Hover any node to reveal a copy button — click to copy its Vault path to clipboard
+- **Pin / Unpin**: Hover any node and click the star icon to pin it; pinned items appear at the top of the tree and persist across sessions
+- **Environment Colors**: Icons and secret detail cards are automatically color-coded based on the environment segment in the path (`dev`, `sit`, `qa`/`uat`, `pre`/`prep`, `prod`)
 
 ### Managing Secrets
 
@@ -145,7 +149,7 @@ Comprehensive guides and references for Vault Navigator:
 - **Edit**: Click edit icon on any configuration card
 - **Delete**: Click delete icon (with confirmation)
 - **Switch**: Click any configuration card to activate it
-- **Test**: Use "Test Connection" before saving
+- **Test**: Use "Test Connection" to validate the token **and** namespace combination — calls `GET /v1/auth/token/lookup-self` so authentication is fully verified, not just reachability
 
 ### Token Rotation
 When your token expires or you get a new one:
@@ -198,8 +202,9 @@ vault-navigator/
 │   │   ├── confirm-dialog.tsx    # Custom confirmation dialog
 │   │   └── ...
 │   ├── config-manager.tsx        # Config management
+│   ├── env-legend.tsx            # Environment color legend
 │   ├── header.tsx                # App header
-│   ├── secret-browser.tsx        # Tree navigation
+│   ├── secret-browser.tsx        # Tree navigation (favorites, copy path, env colors)
 │   ├── secret-editor.tsx         # Secret editor
 │   └── secret-search.tsx         # Search functionality
 │
@@ -219,6 +224,7 @@ vault-navigator/
 │   ├── services/                 # Business services
 │   │   └── vault-cache.ts        # Caching service
 │   ├── utils/                    # Utility functions
+│   │   ├── env-utils.ts          # Environment detection and color map
 │   │   ├── logger.ts             # Logging utility
 │   │   ├── tree-utils.ts         # Tree operations
 │   │   └── vault-path-utils.ts   # Path utilities
@@ -380,6 +386,14 @@ See [Testing Strategy](docs/testing-strategy.md) for complete documentation.
 - ✅ ConfigManager: 343 → 130 lines (62% reduction)
 - ✅ SecretEditor: 333 → 225 lines (32% reduction)
 - ✅ Custom ConfirmDialog (replaced browser alerts)
+
+#### Phase 3 (UX & Environment Awareness)
+- ✅ **Secret Browser — Favorites/Pins**: star any secret or folder; pinned items surface at the top and persist in `localStorage`
+- ✅ **Secret Browser — Copy Path**: hover-reveal copy button on every tree node
+- ✅ **Environment Color Coding**: tree icons and secret detail cards colored by env segment (`dev` / `sit` / `qa`/`uat` / `pre` / `prod`); legend shown at sidebar bottom
+- ✅ **Test Connection**: now validates token + namespace via `GET /v1/auth/token/lookup-self` (previously called the unauthenticated `/sys/health` endpoint)
+- ✅ **Config URL cleanup**: `?token=&url=&namespace=` query params stripped from the browser URL after first use via `router.replace`
+- ✅ **Config deduplication**: URL comparison normalized to hostname to avoid false mismatches on trailing slashes
 
 See `CLEAN_CODE_PLAN.md`, `REFACTORING_SUMMARY.md`, and `PHASE2_SUMMARY.md` for detailed documentation.
 
