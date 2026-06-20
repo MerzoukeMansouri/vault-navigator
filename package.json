@@ -59,7 +59,8 @@
     "overrides": {
       "vite": ">=7.3.2",
       "serialize-javascript": ">=7.0.5",
-      "postcss": ">=8.5.10"
+      "postcss": ">=8.5.10",
+      "form-data": ">=4.0.6"
     }
   }
 }
