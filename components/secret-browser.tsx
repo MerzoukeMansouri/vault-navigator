@@ -13,7 +13,8 @@ import {
   CopyButton,
 } from "./secret-browser-tree";
 
-const FAVORITES_KEY = "vault-navigator-favorites";
+const favoritesKey = (namespace?: string | null) =>
+  `vault-navigator-favorites:${namespace || "root"}`;
 
 interface SecretBrowserProps {
   onSelectSecret: (path: string) => void;
@@ -90,11 +91,11 @@ export function SecretBrowser({
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(FAVORITES_KEY);
+      const stored = localStorage.getItem(favoritesKey(currentNamespace));
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (stored) setFavorites(new Map(JSON.parse(stored)));
+      setFavorites(stored ? new Map(JSON.parse(stored)) : new Map());
     } catch {}
-  }, []);
+  }, [currentNamespace]);
 
   const toggleFavorite = useCallback((node: TreeNode) => {
     setFavorites((prev) => {
@@ -105,22 +106,22 @@ export function SecretBrowser({
         next.set(node.path, { path: node.path, name: node.name, isFolder: node.isFolder });
       }
       try {
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify([...next]));
+        localStorage.setItem(favoritesKey(currentNamespace), JSON.stringify([...next]));
       } catch {}
       return next;
     });
-  }, []);
+  }, [currentNamespace]);
 
   const removeFavorite = useCallback((path: string) => {
     setFavorites((prev) => {
       const next = new Map(prev);
       next.delete(path);
       try {
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify([...next]));
+        localStorage.setItem(favoritesKey(currentNamespace), JSON.stringify([...next]));
       } catch {}
       return next;
     });
-  }, []);
+  }, [currentNamespace]);
 
   const loadRootSecrets = useCallback(async () => {
     if (!client) return;

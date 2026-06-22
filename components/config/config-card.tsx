@@ -3,7 +3,7 @@
 import { Edit2, Trash2, PlugZap } from "lucide-react";
 import { Button } from "../ui/button";
 import { SavedConfig } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, toConfigName } from "@/lib/utils";
 
 interface ConfigCardProps {
   config: SavedConfig;
@@ -32,7 +32,7 @@ export function ConfigCard({
         {isActive ? "✅" : ""}
       </td>
       <td className="py-3 px-4">
-        <span className="text-sm font-medium">{config.name}</span>
+        <span className="text-sm font-medium font-mono tracking-wide">{toConfigName(config.name)}</span>
       </td>
       <td className="py-3 px-4 text-sm text-muted-foreground truncate max-w-xs">
         {config.url}

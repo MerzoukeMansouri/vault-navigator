@@ -12,6 +12,7 @@ import { useConfigForm } from "@/hooks/use-config-form";
 import { useConfigList } from "@/hooks/use-config-list";
 import { useConfirm } from "@/hooks/use-confirm";
 import { SavedConfig } from "@/lib/types";
+import { toConfigName } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { MatrixRain } from "./matrix-rain";
 
@@ -69,7 +70,7 @@ export function ConfigManager({ prefilledToken, prefilledUrl, prefilledNamespace
             <span className="mt-px text-emerald-400 select-none">▶</span>
             <div className="space-y-0.5">
               <p className="text-emerald-300 font-semibold tracking-wide">TOKEN ROTATED</p>
-              <p className="text-emerald-600 text-xs">{match.name} — credentials synchronized</p>
+              <p className="text-emerald-600 text-xs">{toConfigName(match.name)} — credentials synchronized</p>
             </div>
           </div>
         </div>
